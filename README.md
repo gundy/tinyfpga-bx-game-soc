@@ -19,8 +19,12 @@ The planned peripherals are:
 
 Planned IO locations for the devices are:
 
-| IOMEM_ADDR (hex) | Peripheral |
+| MEM_ADDR (hex) | Peripheral |
 | ---------- | ---------- |
+| 0x0000_0000 -> 0x0000_0400 | SRAM |
+| 0x0005_0000 -> 0x0010_0000 | SPI Flash (usable region) |
+| 0x0005_0000 | reset vector (when the CPU is reset it starts executing code here) |
+| 0x0005_0010 | IRQ vector (when an IRQ is triggered, CPU jumps here) |
 | 0x0200_0000 | SPI config |
 | 0x0200_0004 | UART divider |
 | 0x0200_0008 | UART data register |

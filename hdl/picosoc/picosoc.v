@@ -71,8 +71,13 @@ module picosoc (
 
 	parameter integer MEM_WORDS = 256;
 	parameter [31:0] STACKADDR = (4*MEM_WORDS);       // end of memory
-	parameter [31:0] PROGADDR_RESET = 32'h 0010_0000; // 1 MB into flash
-	parameter [31:0] PROGADDR_IRQ = 32'h 0000_0000;
+
+	// TinyFPGA BX SPI flash memory map:
+  //    "bootloader": "0x000a0-0x28000",
+	//    "userimage":  "0x28000-0x50000",
+  //    "userdata":   "0x50000-0x100000"
+	parameter [31:0] PROGADDR_RESET = 32'h 0005_0000; // 327680 bytes into flash
+	parameter [31:0] PROGADDR_IRQ = 32'h 0005_0010;   // 327680 + 16 bytes into flash
 
 	reg [31:0] irq;
 	wire irq_stall = 0;
