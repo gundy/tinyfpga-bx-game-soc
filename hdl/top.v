@@ -76,11 +76,17 @@ module top (
 	);
 
 	wire        iomem_valid;
+	reg         led_iomem_ready;
+	reg         audio_iomem_ready;
+	reg         timer_iomem_ready;
+	reg         iomem_ready;
 	reg         iomem_ready;
 	wire [3:0]  iomem_wstrb;
 	wire [31:0] iomem_addr;
 	wire [31:0] iomem_wdata;
 	wire  [31:0] iomem_rdata;
+
+	wire iomem_ready = led_iomem_ready || audio_iomem_ready || timer_iomem_ready;
 
 	// enable signals for each of the peripherals
 	wire gpio_en, audio_en, video_en, timer_counter_en;
@@ -96,12 +102,14 @@ module top (
 											: timer_counter_en ? iomem_timer_counter_rdata
 											: 32'h 0000_0000;
 
+
+
 	/* map peripherals into IO space */
 	gpio_led led_peripheral(
 		.clk(CLK),
 		.resetn(resetn),
 		.iomem_valid(iomem_valid && gpio_en),
-		.iomem_ready(iomem_ready),
+		.iomem_ready(led_iomem_ready),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
 		.iomem_wdata(iomem_wdata),
@@ -109,13 +117,16 @@ module top (
 		.led(LED)
 	);
 
+	wire audio_data;
+	assign AUDIO_LEFT = audio_data;
+	assign AUDIO_RIGHT = audio_data;
+
 	audio audio_peripheral(
 		.clk(CLK),
 		.resetn(resetn),
-		.audio_left(AUDIO_LEFT),
-		.audio_right(AUDIO_RIGHT),
+		.audio_out(audio_data),
 		.iomem_valid(iomem_valid && gpio_en),
-		.iomem_ready(iomem_ready),
+		.iomem_ready(audio_iomem_ready),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
 		.iomem_wdata(iomem_wdata),
@@ -127,7 +138,7 @@ module top (
 		.clk(CLK),
 		.resetn(resetn),
 		.iomem_valid(iomem_valid && timer_counter_en),
-		.iomem_ready(iomem_ready),
+		.iomem_ready(timer_iomem_ready),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
 		.iomem_wdata(iomem_wdata),
