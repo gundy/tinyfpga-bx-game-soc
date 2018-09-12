@@ -11,3 +11,4 @@ hardware.rpt
 *.asc
 *.rpt
 *.blif
+*.elf

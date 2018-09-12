@@ -9,34 +9,39 @@ RAM              0x0000000000000000 0x0000000000002000 xrw
 Linker script and memory map
 
 
-.text           0x0000000000050000      0x1dc
+.text           0x0000000000050000      0x370
                 0x0000000000050000                . = ALIGN (0x4)
  *(.text)
- .text          0x0000000000050000      0x16a /tmp/ccBvQ25N.o
- .text          0x000000000005016a       0x72 /tmp/cchneX8U.o
-                0x000000000005016a                set_irq_mask
-                0x0000000000050170                main
+ .text          0x0000000000050000      0x1c8 /tmp/ccEozXZV.o
+ .text          0x00000000000501c8      0x146 /tmp/ccQmgCcB.o
+                0x00000000000501c8                set_irq_mask
+                0x00000000000501ce                putchar
+                0x0000000000050200                print
+                0x0000000000050236                main
  *(.text*)
  *(.rodata)
+ *fill*         0x000000000005030e        0x2 
+ .rodata        0x0000000000050310       0x5d /tmp/ccQmgCcB.o
  *(.rodata*)
  *(.srodata)
  *(.srodata*)
  *(.eh_frame)
  *(.eh_frame*)
-                0x00000000000501dc                . = ALIGN (0x4)
-                0x00000000000501dc                _etext = .
-                0x00000000000501dc                _sidata = _etext
+                0x0000000000050370                . = ALIGN (0x4)
+ *fill*         0x000000000005036d        0x3 
+                0x0000000000050370                _etext = .
+                0x0000000000050370                _sidata = _etext
 
-.rela.dyn       0x00000000000501dc        0x0
- .rela.text     0x00000000000501dc        0x0 /tmp/ccBvQ25N.o
+.rela.dyn       0x0000000000050370        0x0
+ .rela.text     0x0000000000050370        0x0 /tmp/ccEozXZV.o
 
-.data           0x0000000000000000       0x14 load address 0x00000000000501dc
+.data           0x0000000000000000       0x14 load address 0x0000000000050370
                 0x0000000000000000                . = ALIGN (0x4)
                 0x0000000000000000                _sdata = .
                 0x0000000000000000                _ram_start = .
  *(.data)
- .data          0x0000000000000000       0x14 /tmp/ccBvQ25N.o
- .data          0x0000000000000014        0x0 /tmp/cchneX8U.o
+ .data          0x0000000000000000       0x14 /tmp/ccEozXZV.o
+ .data          0x0000000000000014        0x0 /tmp/ccQmgCcB.o
  *(.data*)
  *(.sdata)
  *(.sdata*)
@@ -45,12 +50,12 @@ Linker script and memory map
                 0x0000000000000014                . = ALIGN (0x4)
                 0x0000000000000014                _edata = .
 
-.bss            0x0000000000000014        0x0 load address 0x00000000000501f0
+.bss            0x0000000000000014        0x0 load address 0x0000000000050384
                 0x0000000000000014                . = ALIGN (0x4)
                 0x0000000000000014                _sbss = .
  *(.bss)
- .bss           0x0000000000000014        0x0 /tmp/ccBvQ25N.o
- .bss           0x0000000000000014        0x0 /tmp/cchneX8U.o
+ .bss           0x0000000000000014        0x0 /tmp/ccEozXZV.o
+ .bss           0x0000000000000014        0x0 /tmp/ccQmgCcB.o
  *(.bss*)
  *(.sbss)
  *(.sbss*)
@@ -61,20 +66,27 @@ Linker script and memory map
 .heap           0x0000000000000014        0x0
                 0x0000000000000014                . = ALIGN (0x4)
                 0x0000000000000014                _heap_start = .
-LOAD /tmp/ccBvQ25N.o
-LOAD /tmp/cchneX8U.o
+LOAD /tmp/ccEozXZV.o
+LOAD /tmp/ccQmgCcB.o
 OUTPUT(firmware.elf elf32-littleriscv)
 
 .comment        0x0000000000000000       0x11
- .comment       0x0000000000000000       0x11 /tmp/cchneX8U.o
+ .comment       0x0000000000000000       0x11 /tmp/ccQmgCcB.o
                                          0x12 (size before relaxing)
 
 Cross Reference Table
 
 Symbol                                            File
-_ebss                                             /tmp/cchneX8U.o
-_sbss                                             /tmp/cchneX8U.o
-debug                                             /tmp/ccBvQ25N.o
-main                                              /tmp/cchneX8U.o
-                                                  /tmp/ccBvQ25N.o
-set_irq_mask                                      /tmp/cchneX8U.o
+_ebss                                             /tmp/ccQmgCcB.o
+                                                  /tmp/ccEozXZV.o
+_edata                                            /tmp/ccEozXZV.o
+_sbss                                             /tmp/ccQmgCcB.o
+                                                  /tmp/ccEozXZV.o
+_sdata                                            /tmp/ccEozXZV.o
+_sidata                                           /tmp/ccEozXZV.o
+debug                                             /tmp/ccEozXZV.o
+main                                              /tmp/ccQmgCcB.o
+                                                  /tmp/ccEozXZV.o
+print                                             /tmp/ccQmgCcB.o
+putchar                                           /tmp/ccQmgCcB.o
+set_irq_mask                                      /tmp/ccQmgCcB.o

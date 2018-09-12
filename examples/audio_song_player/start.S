@@ -22,9 +22,6 @@ soft_q1:
 	.word 0
 
 
-
-
-
 .section .text
 
 reset_vec:
@@ -40,7 +37,7 @@ irq_vec:
 	//picorv32_setq_insn(q2, x1)
 	//picorv32_setq_insn(q3, x2)
 	sw x1, 4(zero)
-	sw x2, 8(zero) 
+	sw x2, 8(zero)
 
 
 	picorv32_getq_insn(x1, q0)
@@ -166,7 +163,7 @@ irq_vec:
 		//call debug
  	nop
 	nop
-	nop	
+	nop
 	picorv32_retirq_insn()
 
 
@@ -175,10 +172,10 @@ irq_vec:
  **********************************/
 
 start:
-	/* zero-initialize all registers */
 
+	# zero-initialize register file
 	addi x1, zero, 0
-	//addi x2, zero, 0
+	# x2 (sp) is initialized by reset
 	addi x3, zero, 0
 	addi x4, zero, 0
 	addi x5, zero, 0
@@ -209,11 +206,59 @@ start:
 	addi x30, zero, 0
 	addi x31, zero, 0
 
+	# Update LEDs
+	li a0, 0x03000000
+	li a1, 1
+	sw a1, 0(a0)
 
-        call main
+	# zero initialize entire scratchpad memory
+	li a0, 0x00000000
+setmemloop:
+	sw a0, 0(a0)
+	addi a0, a0, 4
+	blt a0, sp, setmemloop
+
+	# Update LEDs
+	li a0, 0x03000000
+	li a1, 3
+	sw a1, 0(a0)
+
+	# copy data section
+	la a0, _sidata
+	la a1, _sdata
+	la a2, _edata
+	bge a1, a2, end_init_data
+loop_init_data:
+	lw a3, 0(a0)
+	sw a3, 0(a1)
+	addi a0, a0, 4
+	addi a1, a1, 4
+	blt a1, a2, loop_init_data
+end_init_data:
+
+	# Update LEDs
+	li a0, 0x03000000
+	li a1, 7
+	sw a1, 0(a0)
+
+	# zero-init bss section
+	la a0, _sbss
+	la a1, _ebss
+	bge a0, a1, end_init_bss
+loop_init_bss:
+	sw zero, 0(a0)
+	addi a0, a0, 4
+	blt a0, a1, loop_init_bss
+end_init_bss:
+
+	# Update LEDs
+	li a0, 0x03000000
+	li a1, 15
+	sw a1, 0(a0)
+
+	# call main
+	call main
 loop:
-        j loop
+	j loop
 
-
-
-
+.balign 4
