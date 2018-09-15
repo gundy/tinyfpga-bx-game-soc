@@ -258,8 +258,7 @@ module audio
                                // used to calculate decay scale factor
 
     wire [7:0] exp_out;  // exponential decay mapping of accumulator output; used for decay and release cycles
-    assign exp_out = voice_envelope_accumulator[ACCUMULATOR_BITS-1 -: 8];
-//    eight_bit_exponential_decay_lookup exp_lookup(.din(voice_envelope_accumulator[ACCUMULATOR_BITS-1 -: 8]), .dout(exp_out));
+    eight_bit_exponential_decay_lookup exp_lookup(.din(voice_envelope_accumulator[ACCUMULATOR_BITS-1 -: 8]), .dout(exp_out));
 
     wire [3:0] sg = {voice_envelope_state,voice_gate};
     wire[2:0] next_envelope_state;
@@ -356,9 +355,6 @@ module audio
         // Envelope generator logic
         ///////////////////////////////////////////////////////////////////////
 
-            envelope_amplitude[voice_num] <= voice_gate ? 255 : 0;
-
-/*
               // check for gate low->high transitions (straight to attack phase)
               prev_voice_gate[voice_num] <= voice_gate;
               if (voice_gate && !prev_voice_gate[voice_num])
@@ -408,7 +404,7 @@ module audio
                     end
                 endcase
             end
-*/
+
 
         // move on to the next voice
         state <= state + 1;
