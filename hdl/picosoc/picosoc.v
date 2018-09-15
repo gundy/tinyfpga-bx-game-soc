@@ -1,7 +1,7 @@
 /*
  *  PicoSoC - A simple example SoC using PicoRV32
  *
- *  Copyright (C) 2017 - Clifford Wolf <clifford@clifford.at>
+ *  Copyright (C) 2017  Clifford Wolf <clifford@clifford.at>
  *
  *  Permission to use, copy, modify, and/or distribute this software for any
  *  purpose with or without fee is hereby granted, provided that the above
@@ -61,23 +61,18 @@ module picosoc (
 	input  flash_io2_di,
 	input  flash_io3_di
 );
-	parameter [0:0] BARREL_SHIFTER = 0;
-	parameter [0:0] ENABLE_MUL = 0;
-	parameter [0:0] ENABLE_DIV = 0;
-	parameter [0:0] ENABLE_COMPRESSED = 0;
-	parameter [0:0] ENABLE_TWO_STAGE_SHIFT = 1;
-	parameter [0:0] ENABLE_COUNTERS = 0;
+	parameter [0:0] BARREL_SHIFTER = 1;
+	parameter [0:0] ENABLE_MULDIV = 1;
+	parameter [0:0] ENABLE_COMPRESSED = 1;
+	parameter [0:0] ENABLE_COUNTERS = 1;
 	parameter [0:0] ENABLE_IRQ_QREGS = 0;
+	parameter [0:0] ENABLE_IRQ = 1;
+	parameter [0:0] ENABLE_TWO_STAGE_SHIFT = 1;
 
 	parameter integer MEM_WORDS = 256;
 	parameter [31:0] STACKADDR = (4*MEM_WORDS);       // end of memory
-
-	// TinyFPGA BX SPI flash memory map:
-  //    "bootloader": "0x000a0-0x28000",
-	//    "userimage":  "0x28000-0x50000",
-  //    "userdata":   "0x50000-0x100000"
-	parameter [31:0] PROGADDR_RESET = 32'h 0005_0000; // 327680 bytes into flash
-	parameter [31:0] PROGADDR_IRQ = 32'h 0005_0010;   // 327680 + 16 bytes into flash
+	parameter [31:0] PROGADDR_RESET = 32'h 0010_0000; // 1 MB into flash
+	parameter [31:0] PROGADDR_IRQ = 32'h 0000_0000;
 
 	reg [31:0] irq;
 	wire irq_stall = 0;
@@ -133,13 +128,13 @@ module picosoc (
 		.PROGADDR_RESET(PROGADDR_RESET),
 		.PROGADDR_IRQ(PROGADDR_IRQ),
 		.BARREL_SHIFTER(BARREL_SHIFTER),
-		.TWO_STAGE_SHIFT(ENABLE_TWO_STAGE_SHIFT),
 		.COMPRESSED_ISA(ENABLE_COMPRESSED),
 		.ENABLE_COUNTERS(ENABLE_COUNTERS),
-		.ENABLE_MUL(ENABLE_MUL),
-		.ENABLE_DIV(ENABLE_DIV),
-		.ENABLE_IRQ(1),
-		.ENABLE_IRQ_QREGS(ENABLE_IRQ_QREGS)
+		.ENABLE_MUL(ENABLE_MULDIV),
+		.ENABLE_DIV(ENABLE_MULDIV),
+		.ENABLE_IRQ(ENABLE_IRQ),
+		.ENABLE_IRQ_QREGS(ENABLE_IRQ_QREGS),
+		.TWO_STAGE_SHIFT(ENABLE_TWO_STAGE_SHIFT)
 	) cpu (
 		.clk         (clk        ),
 		.resetn      (resetn     ),
@@ -226,13 +221,14 @@ module picosoc_regs (
 	output [31:0] rdata1,
 	output [31:0] rdata2
 );
-	reg [31:0] regs [0:31];
+//	reg [31:0] regs [0:31];
+	reg [31:0] regs [0:63];
 
 	always @(posedge clk)
-		if (wen) regs[waddr[4:0]] <= wdata;
+		if (wen) regs[waddr[5:0]] <= wdata;
 
-	assign rdata1 = regs[raddr1[4:0]];
-	assign rdata2 = regs[raddr2[4:0]];
+	assign rdata1 = regs[raddr1[5:0]];
+	assign rdata2 = regs[raddr2[5:0]];
 endmodule
 
 module picosoc_mem #(

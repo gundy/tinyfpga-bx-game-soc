@@ -79,29 +79,26 @@ module top (
 	reg         led_iomem_ready;
 	reg         audio_iomem_ready;
 	reg         timer_iomem_ready;
-	reg         iomem_ready;
-	reg         iomem_ready;
 	wire [3:0]  iomem_wstrb;
 	wire [31:0] iomem_addr;
 	wire [31:0] iomem_wdata;
 	wire  [31:0] iomem_rdata;
 
-	wire iomem_ready = led_iomem_ready || audio_iomem_ready || timer_iomem_ready;
+	wire iomem_ready = led_iomem_ready || audio_iomem_ready  /* || timer_iomem_ready*/ ;
 
 	// enable signals for each of the peripherals
-	wire gpio_en, audio_en, video_en, timer_counter_en;
+	wire gpio_en, audio_en /*, video_en*/ /*, timer_counter_en */;
 	assign gpio_en = (iomem_addr[31:24] == 8'h03);  /* LED mapped to 0x03xx_xxxx */
 	assign audio_en = (iomem_addr[31:24] == 8'h04); /* Audio device mapped to 0x04xx_xxxx */
-  assign video_en = (iomem_addr[31:24] == 8'h05); /* Video device mapped to 0x05xx_xxxx */
-	assign timer_counter_en = (iomem_addr[31:24] == 8'h06); /* timer/counter device mapped to 0x06xx_xxxx */
+  //assign video_en = (iomem_addr[31:24] == 8'h05); /* Video device mapped to 0x05xx_xxxx */
+	//assign timer_counter_en = (iomem_addr[31:24] == 8'h06); /* timer/counter device mapped to 0x06xx_xxxx */
 
-	wire [31:0] iomem_gpio_rdata, iomem_audio_rdata, iomem_video_rdata, iomem_timer_counter_rdata;
+	wire [31:0] iomem_gpio_rdata, iomem_audio_rdata  /*, iomem_video_rdata */ /*, iomem_timer_counter_rdata*/;
 	assign iomem_rdata = gpio_en ? iomem_gpio_rdata
 											: audio_en ? iomem_audio_rdata
-											: video_en ? iomem_video_rdata
-											: timer_counter_en ? iomem_timer_counter_rdata
+											/* : video_en ? iomem_video_rdata */
+											/* : timer_counter_en ? iomem_timer_counter_rdata */
 											: 32'h 0000_0000;
-
 
 
 	/* map peripherals into IO space */
@@ -117,15 +114,17 @@ module top (
 		.led(LED)
 	);
 
+	//assign AUDIO_LEFT = 0;
+	//assign AUDIO_RIGHT = 0;
+
 	wire audio_data;
 	assign AUDIO_LEFT = audio_data;
 	assign AUDIO_RIGHT = audio_data;
-
 	audio audio_peripheral(
 		.clk(CLK),
 		.resetn(resetn),
 		.audio_out(audio_data),
-		.iomem_valid(iomem_valid && gpio_en),
+		.iomem_valid(iomem_valid && audio_en),
 		.iomem_ready(audio_iomem_ready),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
@@ -133,7 +132,8 @@ module top (
 		.iomem_rdata(iomem_audio_rdata),
 	);
 
-	wire timer_counter_overflow;  /* maybe this could be used to generate an interrupt? */
+/*
+	wire timer_counter_overflow;
 	timer_counter timer_counter_peripheral(
 		.clk(CLK),
 		.resetn(resetn),
@@ -144,9 +144,20 @@ module top (
 		.iomem_wdata(iomem_wdata),
 		.iomem_rdata(iomem_timer_counter_rdata),
 		.overflow(timer_counter_overflow)
-	);
+	);*/
 
-	picosoc soc (
+	picosoc #(
+		.BARREL_SHIFTER(0),
+		.ENABLE_MULDIV(0),
+		.ENABLE_COMPRESSED(0),
+		.ENABLE_COUNTERS(0),
+		.ENABLE_IRQ_QREGS(1),
+		.ENABLE_TWO_STAGE_SHIFT(0),
+		.PROGADDR_RESET(32'h0005_0000), // beginning of user space in SPI flash
+		.PROGADDR_IRQ(32'h0005_0010),
+		.MEM_WORDS(1024),                // use 4KBytes of block RAM by default (8 RAMS)
+		.ENABLE_IRQ(1)
+		) soc (
 		.clk          (CLK         ),
 		.resetn       (resetn      ),
 
@@ -171,7 +182,7 @@ module top (
 		.flash_io2_di (flash_io2_di),
 		.flash_io3_di (flash_io3_di),
 
-		.irq_5        (timer_counter_overflow),
+		.irq_5        (1'b0),
 		.irq_6        (1'b0        ),
 		.irq_7        (1'b0        ),
 

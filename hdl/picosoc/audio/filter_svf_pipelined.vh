@@ -30,16 +30,7 @@
  * Q1 ranges from 2 (corresponding to a Q value of 0.5) down to 0 (Q = infinity)
  */
 
- /* multiplier module */
- module smul_18x18 (
-   input signed [17:0] a,
-   input signed [17:0] b,
-   output reg signed [35:0] o
- );
-   always @(*) begin
-    o = a * b;
-   end
- endmodule
+`include "pipelined_multiplier.vh"
 
 module filter_svf_pipelined #(
   parameter SAMPLE_BITS = 12
@@ -80,7 +71,14 @@ module filter_svf_pipelined #(
   reg signed [17:0] mul_a, mul_b;
   wire signed [35:0] mul_out;
 
-  smul_18x18 multiplier(.a(mul_a), .b(mul_b), .o(mul_out));
+  reg mul_input_rdy;
+  wire mul_busy;
+
+  pipelined_signed_18x18_multiplier mul1818(
+    .a(mul_a), .b(mul_b), .p(mul_out),
+    .clk(clk), .input_rdy(mul_input_rdy),
+    .busy(mul_busy)
+  );
 
   reg prev_sample_clk;
   reg [2:0] state;
@@ -106,29 +104,37 @@ module filter_svf_pipelined #(
       in_sign_extended <= { in[SAMPLE_BITS-1], in[SAMPLE_BITS-1], in[SAMPLE_BITS-1], in};
       mul_a <= bandpass;
       mul_b <= Q1;
+      mul_input_rdy <= 1;
       state <= 3'd0;
     end
 
     case (state)
       3'd0: begin
-              // Q1_scaled_delayed_bandpass = (bandpass * Q1) >>> 16;
-              Q1_scaled_delayed_bandpass <= (mul_out >> 16);
-              mul_b <= F;
-              state <= 3'd1;
+              if (!mul_busy) begin
+                // Q1_scaled_delayed_bandpass = (bandpass * Q1) >>> 16;
+                Q1_scaled_delayed_bandpass <= (mul_out >> 16);
+                mul_b <= F;
+                state <= 3'd1;
+              end
             end
       3'd1: begin
-              // F_scaled_delayed_bandpass = (bandpass * F) >>> 17;
-              F_scaled_delayed_bandpass = (mul_out >> 17);
-              lowpass = lowpass + F_scaled_delayed_bandpass[SAMPLE_BITS+2:0];
-              highpass = in_sign_extended - lowpass - Q1_scaled_delayed_bandpass[SAMPLE_BITS+2:0];
-              mul_a <= highpass;
-              state <= 3'd2;
+              if (!mul_busy) begin
+                // F_scaled_delayed_bandpass = (bandpass * F) >>> 17;
+                F_scaled_delayed_bandpass = (mul_out >> 17);
+                lowpass = lowpass + F_scaled_delayed_bandpass[SAMPLE_BITS+2:0];
+                highpass = in_sign_extended - lowpass - Q1_scaled_delayed_bandpass[SAMPLE_BITS+2:0];
+                mul_a <= highpass;
+                state <= 3'd2;
+              end
             end
       3'd2: begin
-              F_scaled_highpass = mul_out >> 17;
-              bandpass <= F_scaled_highpass[SAMPLE_BITS+2:0] + bandpass;
-              notch <= highpass + lowpass;
-              state <= 3'd3;
+              if (!mul_busy) begin
+                F_scaled_highpass = mul_out >> 17;
+                bandpass <= F_scaled_highpass[SAMPLE_BITS+2:0] + bandpass;
+                notch <= highpass + lowpass;
+                state <= 3'd3;
+                mul_input_rdy <= 0;
+              end
             end
     endcase
   end

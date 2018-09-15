@@ -58,8 +58,8 @@ The registers available are described below :
       Z = enable sync with (voice - 1)%3
       <br/>E = enable voice (mix voice into output)
       <br/>F = route voice through filter
-      <br/>M = enable ring modulation with (voice-1)%3
       <br/>T = Test (lock oscillator at 0)
+      <br/>M = enable ring modulation with (voice-1)%3
       <br/>
       <br/>W7:0 = Waveform select.
       <br/>

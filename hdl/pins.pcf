@@ -48,14 +48,14 @@ set_io --warn-no-port AUDIO_RIGHT A1    # pin 2
 #set_io --warn-no-port PIN_8 E2
 #set_io --warn-no-port PIN_9 E1
 #set_io --warn-no-port PIN_10 G2
-set_io --warn-no-port SER_RX H1    # pin 11
+#set_io --warn-no-port PIN_11 H1
 #set_io --warn-no-port PIN_12 J1
-set_io --warn-no-port SER_TX H2    # pin 13
+#set_io --warn-no-port PIN_13 H2
 
 # Right side of board
 #set_io --warn-no-port PIN_14 H9
-#set_io --warn-no-port PIN_15 D9
-#set_io --warn-no-port PIN_16 D8
+set_io --warn-no-port SER_RX D9
+set_io --warn-no-port SER_TX D8
 #set_io --warn-no-port PIN_17 C9
 #set_io --warn-no-port PIN_18 A9
 #set_io --warn-no-port PIN_19 B8

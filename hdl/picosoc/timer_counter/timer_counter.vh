@@ -38,15 +38,15 @@ module timer_counter
 			iomem_ready <= 0;
 			if (iomem_valid && !iomem_ready) begin
         iomem_ready <= 1;
-        case (iomem_addr[0:0])
-          1'b0: begin /* accumulator register */
+        case (iomem_addr[2:0])
+          3'd0: begin /* accumulator register */
             iomem_rdata <= accumulator;
             if (iomem_wstrb[0]) accumulator[ 7: 0] <= iomem_wdata[ 7: 0];
     				if (iomem_wstrb[1]) accumulator[15: 8] <= iomem_wdata[15: 8];
     				if (iomem_wstrb[2]) accumulator[23:16] <= iomem_wdata[23:16];
     				if (iomem_wstrb[3]) accumulator[31:24] <= iomem_wdata[31:24];
           end
-          1'b1: begin  /* increment value */
+          3'd4: begin  /* increment value */
             iomem_rdata <= increment;
             if (iomem_wstrb[0]) increment[ 7: 0] <= iomem_wdata[ 7: 0];
             if (iomem_wstrb[1]) increment[15: 8] <= iomem_wdata[15: 8];

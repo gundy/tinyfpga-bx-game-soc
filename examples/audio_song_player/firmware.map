@@ -3,90 +3,99 @@ Memory Configuration
 
 Name             Origin             Length             Attributes
 FLASH            0x0000000000050000 0x0000000000100000 xr
-RAM              0x0000000000000000 0x0000000000002000 xrw
+RAM              0x0000000000000000 0x0000000000000c00 xrw
+STACK            0x0000000000000c00 0x0000000000000400 rw
 *default*        0x0000000000000000 0xffffffffffffffff
 
 Linker script and memory map
 
 
-.text           0x0000000000050000      0x370
+.text           0x0000000000050000      0x56c
                 0x0000000000050000                . = ALIGN (0x4)
  *(.text)
- .text          0x0000000000050000      0x1c8 /tmp/ccEozXZV.o
- .text          0x00000000000501c8      0x146 /tmp/ccQmgCcB.o
-                0x00000000000501c8                set_irq_mask
-                0x00000000000501ce                putchar
-                0x0000000000050200                print
-                0x0000000000050236                main
+ .text          0x0000000000050000      0x220 /tmp/ccRaIaN5.o
+ .text          0x0000000000050220      0x290 /tmp/ccud4ukg.o
+                0x0000000000050220                putchar
+                0x0000000000050270                print
+                0x00000000000502c0                print_hex
+                0x0000000000050338                irq_handler
+                0x0000000000050394                main
  *(.text*)
  *(.rodata)
- *fill*         0x000000000005030e        0x2 
- .rodata        0x0000000000050310       0x5d /tmp/ccQmgCcB.o
+ .rodata        0x00000000000504b0       0xbc /tmp/ccud4ukg.o
  *(.rodata*)
  *(.srodata)
  *(.srodata*)
  *(.eh_frame)
  *(.eh_frame*)
-                0x0000000000050370                . = ALIGN (0x4)
- *fill*         0x000000000005036d        0x3 
-                0x0000000000050370                _etext = .
-                0x0000000000050370                _sidata = _etext
+                0x000000000005056c                . = ALIGN (0x4)
+                0x000000000005056c                _etext = .
+                0x000000000005056c                _sidata = _etext
 
-.rela.dyn       0x0000000000050370        0x0
- .rela.text     0x0000000000050370        0x0 /tmp/ccEozXZV.o
+.rela.dyn       0x000000000005056c        0x0
+ .rela.text     0x000000000005056c        0x0 /tmp/ccRaIaN5.o
 
-.data           0x0000000000000000       0x14 load address 0x0000000000050370
+.data           0x0000000000000000       0x2c load address 0x000000000005056c
                 0x0000000000000000                . = ALIGN (0x4)
                 0x0000000000000000                _sdata = .
                 0x0000000000000000                _ram_start = .
  *(.data)
- .data          0x0000000000000000       0x14 /tmp/ccEozXZV.o
- .data          0x0000000000000014        0x0 /tmp/ccQmgCcB.o
+ .data          0x0000000000000000       0x14 /tmp/ccRaIaN5.o
+ .data          0x0000000000000014        0x0 /tmp/ccud4ukg.o
  *(.data*)
  *(.sdata)
+ .sdata         0x0000000000000014       0x18 /tmp/ccud4ukg.o
+                0x0000000000000014                counter_frequency
+                0x0000000000000018                led_state
+                0x000000000000001c                set_irq_mask
+                0x0000000000000024                set_timer_counter
  *(.sdata*)
  *(.init_array)
  *(.init_array*)
-                0x0000000000000014                . = ALIGN (0x4)
-                0x0000000000000014                _edata = .
+                0x000000000000002c                . = ALIGN (0x4)
+                0x000000000000002c                _edata = .
 
-.bss            0x0000000000000014        0x0 load address 0x0000000000050384
-                0x0000000000000014                . = ALIGN (0x4)
-                0x0000000000000014                _sbss = .
+.bss            0x0000000000000c00        0x0 load address 0x000000000000002c
+                0x0000000000000c00                . = ALIGN (0x4)
+                0x0000000000000c00                _sbss = .
  *(.bss)
- .bss           0x0000000000000014        0x0 /tmp/ccEozXZV.o
- .bss           0x0000000000000014        0x0 /tmp/ccQmgCcB.o
+ .bss           0x0000000000000c00        0x0 /tmp/ccRaIaN5.o
+ .bss           0x0000000000000c00        0x0 /tmp/ccud4ukg.o
  *(.bss*)
  *(.sbss)
  *(.sbss*)
  *(COMMON)
-                0x0000000000000014                . = ALIGN (0x4)
-                0x0000000000000014                _ebss = .
+                0x0000000000000c00                . = ALIGN (0x4)
+                0x0000000000001000                _ebss = (. + 0x400)
 
-.heap           0x0000000000000014        0x0
-                0x0000000000000014                . = ALIGN (0x4)
-                0x0000000000000014                _heap_start = .
-LOAD /tmp/ccEozXZV.o
-LOAD /tmp/ccQmgCcB.o
+.heap           0x000000000000002c        0x0
+                0x000000000000002c                . = ALIGN (0x4)
+                0x000000000000002c                _heap_start = .
+LOAD /tmp/ccRaIaN5.o
+LOAD /tmp/ccud4ukg.o
 OUTPUT(firmware.elf elf32-littleriscv)
 
 .comment        0x0000000000000000       0x11
- .comment       0x0000000000000000       0x11 /tmp/ccQmgCcB.o
+ .comment       0x0000000000000000       0x11 /tmp/ccud4ukg.o
                                          0x12 (size before relaxing)
 
 Cross Reference Table
 
 Symbol                                            File
-_ebss                                             /tmp/ccQmgCcB.o
-                                                  /tmp/ccEozXZV.o
-_edata                                            /tmp/ccEozXZV.o
-_sbss                                             /tmp/ccQmgCcB.o
-                                                  /tmp/ccEozXZV.o
-_sdata                                            /tmp/ccEozXZV.o
-_sidata                                           /tmp/ccEozXZV.o
-debug                                             /tmp/ccEozXZV.o
-main                                              /tmp/ccQmgCcB.o
-                                                  /tmp/ccEozXZV.o
-print                                             /tmp/ccQmgCcB.o
-putchar                                           /tmp/ccQmgCcB.o
-set_irq_mask                                      /tmp/ccQmgCcB.o
+_ebss                                             /tmp/ccRaIaN5.o
+_edata                                            /tmp/ccRaIaN5.o
+_sbss                                             /tmp/ccRaIaN5.o
+_sdata                                            /tmp/ccRaIaN5.o
+_sidata                                           /tmp/ccRaIaN5.o
+counter_frequency                                 /tmp/ccud4ukg.o
+init                                              /tmp/ccRaIaN5.o
+irq_handler                                       /tmp/ccud4ukg.o
+                                                  /tmp/ccRaIaN5.o
+led_state                                         /tmp/ccud4ukg.o
+main                                              /tmp/ccud4ukg.o
+                                                  /tmp/ccRaIaN5.o
+print                                             /tmp/ccud4ukg.o
+print_hex                                         /tmp/ccud4ukg.o
+putchar                                           /tmp/ccud4ukg.o
+set_irq_mask                                      /tmp/ccud4ukg.o
+set_timer_counter                                 /tmp/ccud4ukg.o
