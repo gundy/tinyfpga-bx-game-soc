@@ -92,7 +92,7 @@ void handle_percussion_div(int chan, int instrument) {
           // "disable" voice if we have a new note
           if (note.new_note != 0) {
             channelctrl[chan].note.note.new_note = note.new_note;
-            reg_audio[chan*4+REG_VOLUME]=0;
+//            reg_audio[chan*4+REG_VOLUME]=0;
           }
           // switch out instrument waveform parameters for new voice
           if (note.instrument != 0) {

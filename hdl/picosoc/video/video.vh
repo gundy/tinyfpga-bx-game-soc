@@ -9,6 +9,11 @@
 `ifndef __GAME_SOC_VIDEO__
 `define __GAME_SOC_VIDEO__
 
+`include "VGASyncGen.vh"
+`include "sprite_memory.vh"
+`include "texture_memory.vh"
+`include "tile_memory.vh"
+
 module video
 (
   input resetn,
@@ -18,11 +23,50 @@ module video
 	input [3:0]  iomem_wstrb,
 	input [31:0] iomem_addr,
 	input [31:0] iomem_wdata,
-	output reg [31:0] iomem_rdata);
+	output reg [31:0] iomem_rdata,
+  output vga_hsync,
+  output vga_vsync,
+  output vga_r,
+  output vga_g,
+  output vga_b);
 
-	reg [31:0] config_register_bank [0:15];
+  wire pixel_clock;
+  reg[9:0] xpos;
+  reg[9:0] ypos;
+  wire video_active;
 
+  // video registers
+  // x scroll offset
+  // y scroll offset
+
+	reg [31:0] config_register_bank [0:3];
   wire [3:0] bank_addr = iomem_addr[5:2];
+
+  // todo sprites
+  // sprite_memory spritemem();
+
+  wire texmem_write = (iomem_wstrb[0] && iomem_addr[23:20]==4'h0);
+  wire tilemem_write = (iomem_wstrb[0] && iomem_addr[23:20]==4'h1);
+
+  wire [5:0] tile_read_data;
+  wire [2:0] texture_read_data;
+
+  wire [11:0] tile_read_address = 12'h0; // calculate tile read address
+
+  tile_memory tilemem(
+    .rclk(pixel_clock), .ren(video_active), .raddr(tile_read_address), .rdata(tile_read_data),
+    .wclk(clk), .wen(tilemem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[5:0])
+  );
+
+  wire [11:0] texture_read_address = {6'b0, tile_read_data}; // (tile_read_data<<6)+(tile_y_ofs<<3)+tile_x_ofs;
+  texture_memory texturemem(
+    .rclk(pixel_clock), .ren(video_active), .raddr(texture_read_address), .rdata(texture_read_data),
+    .wclk(clk), .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[2:0])
+  );
+
+  assign vga_r = texture_read_data[2];
+  assign vga_g = texture_read_data[1];
+  assign vga_b = texture_read_data[0];
 
 	always @(posedge clk) begin
 		if (!resetn) begin
@@ -42,6 +86,16 @@ module video
 			end
 		end
 	end
+
+  VGASyncGen vga_generator(
+    .clk(clk),
+    .hsync(vga_hsync),
+    .vsync(vga_vsync),
+    .x_px(xpos),
+    .y_px(ypos),
+    .activevideo(video_active),
+    .px_clk(pixel_clock)
+  );
 
 endmodule
 

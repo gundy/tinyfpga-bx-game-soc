@@ -46,11 +46,12 @@ set_io --warn-no-port AUDIO_RIGHT A1    # pin 2
 #set_io --warn-no-port PIN_6 D2
 #set_io --warn-no-port PIN_7 D1
 #set_io --warn-no-port PIN_8 E2
-#set_io --warn-no-port PIN_9 E1
-#set_io --warn-no-port PIN_10 G2
-#set_io --warn-no-port PIN_11 H1
-#set_io --warn-no-port PIN_12 J1
-#set_io --warn-no-port PIN_13 H2
+set_io --warn-no-port VGA_B E1      # pin 9
+set_io --warn-no-port VGA_G G2      # pin 10
+set_io --warn-no-port VGA_R H1      # pin 11
+set_io --warn-no-port VGA_HSYNC J1  # pin 12
+set_io --warn-no-port VGA_VSYNC H2  # pin 13
+
 
 # Right side of board
 #set_io --warn-no-port PIN_14 H9
@@ -64,6 +65,7 @@ set_io --warn-no-port SER_TX D8
 #set_io --warn-no-port PIN_22 A7
 #set_io --warn-no-port PIN_23 B6
 #set_io --warn-no-port PIN_24 A6
+
 
 # SPI flash interface on bottom of board
 set_io --warn-no-port SPI_SS F7
