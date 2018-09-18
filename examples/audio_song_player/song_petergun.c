@@ -13,8 +13,8 @@ const struct envelope_t envelope0 = {
 const struct envelope_t envelope1 = {
   .num_points = 16,
   .points = {
-    0x40, 0xff, 0xcc, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0x80, 0x60, 0x40, 0x20, 0x10, 0x08, 0x04, 0x00
+    0x10, 0xb0, 0xb4, 0xa0, 0x80, 0x60, 0x40, 0x30,
+    0x20, 0x10, 0x08, 0x04, 0x03, 0x02, 0x01, 0x00
   }
 };
 
@@ -60,7 +60,7 @@ const struct song_t song_petergun = {
       {.waveform_select = WAVE_NONE, .envelope = &envelope3, .envelope_enable=1, .pulsewidth = 2048},  // 4 = snare
 
       // first user defined instrument here:
-      {.waveform_select = WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 400}  // 5 = bassline
+      {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 400}  // 5 = bassline
   },
   .bars = {
     { .notes = {
@@ -148,7 +148,7 @@ const struct song_t song_petergun = {
         { .n = {.n= 0,.i=0 }},
         { .n = {.n=99,.i=2 }},  // closed hh
         { .n = {.n= 0,.i=0 }},
-        { .n = {.n= 0,.i=4 }},  // snare
+        { .n = {.n=11,.i=4 }},  // snare
         { .n = {.n=99,.i=2 }},  // closed hh
         { .n = {.n= 0,.i=0 }},
         { .n = {.n= 0,.i=0 }},
@@ -156,7 +156,7 @@ const struct song_t song_petergun = {
         { .n = {.n=99,.i=2 }},  // closed hh
         { .n = {.n= 0,.i=0 }},
         { .n = {.n= 0,.i=0 }},
-        { .n = {.n=0, .i=4 }}, // snare
+        { .n = {.n=11, .i=4 }}, // snare
         { .n = {.n=99,.i=2 }}, // closed hh
         { .n = {.n= 0,.i=0 }},
         { .n = {.n= 0,.i=0 }}

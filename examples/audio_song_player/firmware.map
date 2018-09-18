@@ -15,36 +15,36 @@ Linker script and memory map
 .text           0x0000000000050000     0x6220
                 0x0000000000050000                . = ALIGN (0x4)
  *(.text)
- .text          0x0000000000050000      0x230 /tmp/ccSwlqEF.o
- .text          0x0000000000050230      0x164 /tmp/ccZERooV.o
+ .text          0x0000000000050000      0x230 /tmp/cc8z2GUg.o
+ .text          0x0000000000050230      0x164 /tmp/cciJrSU5.o
                 0x0000000000050230                play_simple_note
                 0x000000000005028c                irq_handler
                 0x00000000000502ec                main
- .text          0x0000000000050394      0x9a4 /tmp/ccn9qUdb.o
+ .text          0x0000000000050394      0x9a4 /tmp/ccTLuO0U.o
                 0x0000000000050394                songplayer_init
                 0x0000000000050444                handle_percussion_div
                 0x000000000005059c                divhandler
                 0x00000000000509c0                handle_percussion_tick
                 0x0000000000050a9c                tickhandler
                 0x0000000000050c7c                songplayer_tick
- .text          0x0000000000050d38        0x0 /tmp/ccq86i5q.o
- .text          0x0000000000050d38      0x118 /tmp/ccx14WYG.o
+ .text          0x0000000000050d38        0x0 /tmp/ccIeGT8J.o
+ .text          0x0000000000050d38      0x118 /tmp/cc5Ruejz.o
                 0x0000000000050d38                putchar
                 0x0000000000050d88                print
                 0x0000000000050dd8                print_hex
  *(.text*)
  *(.rodata)
- .rodata        0x0000000000050e50       0x63 /tmp/ccZERooV.o
+ .rodata        0x0000000000050e50       0x63 /tmp/cciJrSU5.o
  *fill*         0x0000000000050eb3        0x1 
- .rodata        0x0000000000050eb4      0x200 /tmp/ccn9qUdb.o
+ .rodata        0x0000000000050eb4      0x200 /tmp/ccTLuO0U.o
                 0x0000000000050eb4                note_to_freq
- .rodata        0x00000000000510b4     0x5108 /tmp/ccq86i5q.o
+ .rodata        0x00000000000510b4     0x5108 /tmp/ccIeGT8J.o
                 0x00000000000510b4                song_petergun
- .rodata        0x00000000000561bc       0x11 /tmp/ccx14WYG.o
+ .rodata        0x00000000000561bc       0x11 /tmp/cc5Ruejz.o
  *(.rodata*)
  *(.srodata)
  *fill*         0x00000000000561cd        0x3 
- .srodata       0x00000000000561d0       0x50 /tmp/ccq86i5q.o
+ .srodata       0x00000000000561d0       0x50 /tmp/ccIeGT8J.o
                 0x00000000000561d0                envelope0
                 0x00000000000561e4                envelope1
                 0x00000000000561f8                envelope2
@@ -57,28 +57,28 @@ Linker script and memory map
                 0x0000000000056220                _sidata = _etext
 
 .rela.dyn       0x0000000000056220        0x0
- .rela.text     0x0000000000056220        0x0 /tmp/ccSwlqEF.o
+ .rela.text     0x0000000000056220        0x0 /tmp/cc8z2GUg.o
 
 .data           0x0000000000000400       0x50 load address 0x0000000000056220
                 0x0000000000000400                . = ALIGN (0x4)
                 0x0000000000000400                _sdata = .
                 0x0000000000000400                _ram_start = .
  *(.data)
- .data          0x0000000000000400        0x0 /tmp/ccSwlqEF.o
- .data          0x0000000000000400        0x0 /tmp/ccZERooV.o
- .data          0x0000000000000400       0x34 /tmp/ccn9qUdb.o
+ .data          0x0000000000000400        0x0 /tmp/cc8z2GUg.o
+ .data          0x0000000000000400        0x0 /tmp/cciJrSU5.o
+ .data          0x0000000000000400       0x34 /tmp/ccTLuO0U.o
                 0x0000000000000400                globalctrl
                 0x0000000000000410                channelctrl
- .data          0x0000000000000434        0x0 /tmp/ccq86i5q.o
- .data          0x0000000000000434        0x0 /tmp/ccx14WYG.o
+ .data          0x0000000000000434        0x0 /tmp/ccIeGT8J.o
+ .data          0x0000000000000434        0x0 /tmp/cc5Ruejz.o
  *(.data*)
  *(.sdata)
- .sdata         0x0000000000000434       0x18 /tmp/ccZERooV.o
+ .sdata         0x0000000000000434       0x18 /tmp/cciJrSU5.o
                 0x0000000000000434                counter_frequency
                 0x0000000000000438                led_state
                 0x000000000000043c                set_irq_mask
                 0x0000000000000444                set_timer_counter
- .sdata         0x000000000000044c        0x4 /tmp/ccn9qUdb.o
+ .sdata         0x000000000000044c        0x4 /tmp/ccTLuO0U.o
                 0x000000000000044c                player_song
  *(.sdata*)
  *(.init_array)
@@ -87,64 +87,64 @@ Linker script and memory map
                 0x0000000000000450                _edata = .
 
 .bss            0x0000000000000450        0x0 load address 0x0000000000056270
- .bss           0x0000000000000450        0x0 /tmp/ccSwlqEF.o
- .bss           0x0000000000000450        0x0 /tmp/ccZERooV.o
- .bss           0x0000000000000450        0x0 /tmp/ccn9qUdb.o
- .bss           0x0000000000000450        0x0 /tmp/ccq86i5q.o
- .bss           0x0000000000000450        0x0 /tmp/ccx14WYG.o
+ .bss           0x0000000000000450        0x0 /tmp/cc8z2GUg.o
+ .bss           0x0000000000000450        0x0 /tmp/cciJrSU5.o
+ .bss           0x0000000000000450        0x0 /tmp/ccTLuO0U.o
+ .bss           0x0000000000000450        0x0 /tmp/ccIeGT8J.o
+ .bss           0x0000000000000450        0x0 /tmp/cc5Ruejz.o
 
 .heap           0x0000000000000450        0x0
                 0x0000000000000450                . = ALIGN (0x4)
                 0x0000000000000450                _heap_start = .
-LOAD /tmp/ccSwlqEF.o
-LOAD /tmp/ccZERooV.o
-LOAD /tmp/ccn9qUdb.o
-LOAD /tmp/ccq86i5q.o
-LOAD /tmp/ccx14WYG.o
+LOAD /tmp/cc8z2GUg.o
+LOAD /tmp/cciJrSU5.o
+LOAD /tmp/ccTLuO0U.o
+LOAD /tmp/ccIeGT8J.o
+LOAD /tmp/cc5Ruejz.o
 OUTPUT(firmware.elf elf32-littleriscv)
 
 .comment        0x0000000000000000       0x11
- .comment       0x0000000000000000       0x11 /tmp/ccZERooV.o
+ .comment       0x0000000000000000       0x11 /tmp/cciJrSU5.o
                                          0x12 (size before relaxing)
- .comment       0x0000000000000011       0x12 /tmp/ccn9qUdb.o
- .comment       0x0000000000000011       0x12 /tmp/ccq86i5q.o
- .comment       0x0000000000000011       0x12 /tmp/ccx14WYG.o
+ .comment       0x0000000000000011       0x12 /tmp/ccTLuO0U.o
+ .comment       0x0000000000000011       0x12 /tmp/ccIeGT8J.o
+ .comment       0x0000000000000011       0x12 /tmp/cc5Ruejz.o
 
 Cross Reference Table
 
 Symbol                                            File
-_edata                                            /tmp/ccSwlqEF.o
-_sdata                                            /tmp/ccSwlqEF.o
-_sidata                                           /tmp/ccSwlqEF.o
-channelctrl                                       /tmp/ccn9qUdb.o
-counter_frequency                                 /tmp/ccZERooV.o
-divhandler                                        /tmp/ccn9qUdb.o
-envelope0                                         /tmp/ccq86i5q.o
-envelope1                                         /tmp/ccq86i5q.o
-envelope2                                         /tmp/ccq86i5q.o
-envelope3                                         /tmp/ccq86i5q.o
-globalctrl                                        /tmp/ccn9qUdb.o
-handle_percussion_div                             /tmp/ccn9qUdb.o
-handle_percussion_tick                            /tmp/ccn9qUdb.o
-init                                              /tmp/ccSwlqEF.o
-irq_handler                                       /tmp/ccZERooV.o
-                                                  /tmp/ccSwlqEF.o
-led_state                                         /tmp/ccZERooV.o
-main                                              /tmp/ccZERooV.o
-                                                  /tmp/ccSwlqEF.o
-note_to_freq                                      /tmp/ccn9qUdb.o
-play_simple_note                                  /tmp/ccZERooV.o
-player_song                                       /tmp/ccn9qUdb.o
-print                                             /tmp/ccx14WYG.o
-                                                  /tmp/ccZERooV.o
-print_hex                                         /tmp/ccx14WYG.o
-putchar                                           /tmp/ccx14WYG.o
-set_irq_mask                                      /tmp/ccZERooV.o
-set_timer_counter                                 /tmp/ccZERooV.o
-song_petergun                                     /tmp/ccq86i5q.o
-                                                  /tmp/ccZERooV.o
-songplayer_init                                   /tmp/ccn9qUdb.o
-                                                  /tmp/ccZERooV.o
-songplayer_tick                                   /tmp/ccn9qUdb.o
-                                                  /tmp/ccZERooV.o
-tickhandler                                       /tmp/ccn9qUdb.o
+_edata                                            /tmp/cc8z2GUg.o
+_sdata                                            /tmp/cc8z2GUg.o
+_sidata                                           /tmp/cc8z2GUg.o
+channelctrl                                       /tmp/ccTLuO0U.o
+counter_frequency                                 /tmp/cciJrSU5.o
+divhandler                                        /tmp/ccTLuO0U.o
+envelope0                                         /tmp/ccIeGT8J.o
+envelope1                                         /tmp/ccIeGT8J.o
+envelope2                                         /tmp/ccIeGT8J.o
+envelope3                                         /tmp/ccIeGT8J.o
+globalctrl                                        /tmp/ccTLuO0U.o
+handle_percussion_div                             /tmp/ccTLuO0U.o
+handle_percussion_tick                            /tmp/ccTLuO0U.o
+init                                              /tmp/cc8z2GUg.o
+irq_handler                                       /tmp/cciJrSU5.o
+                                                  /tmp/cc8z2GUg.o
+led_state                                         /tmp/cciJrSU5.o
+main                                              /tmp/cciJrSU5.o
+                                                  /tmp/cc8z2GUg.o
+note_to_freq                                      /tmp/ccTLuO0U.o
+play_simple_note                                  /tmp/cciJrSU5.o
+player_song                                       /tmp/ccTLuO0U.o
+print                                             /tmp/cc5Ruejz.o
+                                                  /tmp/cciJrSU5.o
+print_hex                                         /tmp/cc5Ruejz.o
+putchar                                           /tmp/cc5Ruejz.o
+set_irq_mask                                      /tmp/cciJrSU5.o
+set_timer_counter                                 /tmp/cciJrSU5.o
+song_petergun                                     /tmp/ccIeGT8J.o
+                                                  /tmp/cciJrSU5.o
+songplayer_init                                   /tmp/ccTLuO0U.o
+                                                  /tmp/cciJrSU5.o
+songplayer_tick                                   /tmp/ccTLuO0U.o
+                                                  /tmp/cciJrSU5.o
+tickhandler                                       /tmp/ccTLuO0U.o
