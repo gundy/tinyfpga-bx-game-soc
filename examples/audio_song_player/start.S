@@ -7,19 +7,6 @@
 
 
 #include "custom_ops.S"
-.section .data
-
-.balign 4
-irq_handler_addr:
-	.word irq_handler
-soft_q2:
-	.word 0x0000000000000000
-soft_q3:
-	.word 0x0000000000000000
-soft_q0:
-	.word 0
-soft_q1:
-	.word 0
 
 .section .text
 .global init
@@ -40,9 +27,11 @@ irq_vec:
 	// stack normally is consumed from top downwards, but
 	// irq handler uses stack right at bottom of stack range
 	// (leaving top of stack for normal programs)..
-	// (_sbss = start of stack segment; _ebss = end of stack segment)
-	lui sp, %hi(_sbss)
-	addi sp, sp, %lo(_sbss)
+
+	addi sp, zero, 0
+
+//	lui sp, %hi(0)
+//	addi sp, sp, %lo(0)
 
 	picorv32_getq_insn(x1, q0)
 	sw x1,   0*4(sp)            // Q0 = return address from IRQ vector
@@ -97,7 +86,7 @@ irq_vec:
 	addi sp, sp, 384   // 128 bytes for register file, 256 bytes for interrupt handler stack
 
 	// load irq handler address to x1 (ra)
-	lw ra, 0(zero)
+	la ra, irq_handler
 
 	// call to C function
 	beq zero, ra, cleanup  // if ra is a null pointer, don't jump to it
@@ -105,7 +94,8 @@ irq_vec:
 
 cleanup:
 
-	addi sp, sp, -384
+	//addi sp, sp, -384
+	addi sp, zero, 0
 
 	/* restore registers */
 	lw x1,   0*4(sp)
@@ -158,10 +148,11 @@ cleanup:
 start:
 	# zero initialize entire scratchpad memory
 	li a0, 0x00000000
+	li a1, 0x00001000
 setmemloop:
 	sw a0, 0(a0)
 	addi a0, a0, 4
-	blt a0, sp, setmemloop
+	blt a0, a1, setmemloop
 
 	# copy data section
 	la a0, _sidata
@@ -209,8 +200,8 @@ end_init_data:
 	addi x30, zero, 0
 	addi x31, zero, 0
 
-	lui sp, %hi(_ebss);
-	addi sp, sp, %lo(_ebss);
+	lui sp, %hi(0x400);
+	addi sp, sp, %lo(0x400);
 	# call main
 	call main
 loop:

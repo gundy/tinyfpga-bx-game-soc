@@ -1,8 +1,11 @@
+__heap_size  = 0x200;;      /* required amount of heap  */
+__stack_size = 0x400;; /* required amount of stack */
+
 MEMORY
 {
     FLASH (rx)      : ORIGIN = 0x00050000, LENGTH = 0x100000 /* entire flash, 1 MiB */
-    RAM (xrw)       : ORIGIN = 0x00000000, LENGTH = 0x000c00 /* 1 K-words (4096 bytes) - 1024 bytes for stack */
-    STACK (rw)      : ORIGIN = 0x00000c00, LENGTH = 0x000400 /* 1024 bytes for stack */
+    STACK (rw)      : ORIGIN = 0x00000000, LENGTH = 0x000400 /* 1024 bytes for stack (2 BRAMS) */
+    RAM (xrw)       : ORIGIN = 0x00000400, LENGTH = 0x001000 /* 3072 bytes heap (6 BRAMS) */
 }
 
 SECTIONS {
@@ -22,7 +25,6 @@ SECTIONS {
         _etext = .;        /* define a global symbol at end of code */
         _sidata = _etext;  /* This is used by the startup in order to initialize the .data secion */
     } >FLASH
-
 
     /* This is the initialized data section
     The program executes knowing that the data is in the RAM
@@ -44,10 +46,11 @@ SECTIONS {
     } >RAM
 
     /* Uninitialized data section */
+    /*
     .bss : AT( _edata)
     {
         . = ALIGN(4);
-        _sbss = .;         /* define a global symbol at bss start; used by startup code */
+        _sbss = .;
         *(.bss)
         *(.bss*)
         *(.sbss)
@@ -55,8 +58,9 @@ SECTIONS {
         *(COMMON)
 
         . = ALIGN(4);
-        _ebss = . + 0x400;         /* define a global symbol at bss end; used by startup code */
-    } >STACK
+        _ebss = . + 0x400;
+    } >BSS
+    */
 
     /* this is to define the start of the heap, and make sure we have a minimum size */
     .heap :

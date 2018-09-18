@@ -24,6 +24,7 @@ module pipelined_signed_18x18_multiplier(
   end
 
   always @(posedge clk) begin
+    (* full_case, parallel_case *)
     case (state)
       STATE_IDLE: begin
         if (input_rdy) begin
@@ -55,11 +56,6 @@ module pipelined_signed_18x18_multiplier(
         p <= p + (p1 << 18);
         busy <= 1'b0;
         state <= STATE_IDLE;
-      end
-      default: begin
-        state <= STATE_IDLE;
-        p <= 0;
-        busy <= 1'b0;
       end
     endcase
   end

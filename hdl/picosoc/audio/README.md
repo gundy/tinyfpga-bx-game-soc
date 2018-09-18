@@ -5,14 +5,14 @@
 - 3 channels
 - each channel having:
  - square/triangle/saw/noise waveform generators
- - *possibly* wavetable support
- - ADSR envelope generator
  - ring modulation / sync
 - (maybe) global filter (HP/LP/BP/Notch) available to route channels through
 
 # Programming API
 
 The soundcard peripheral is accessible in IO mapped memory at location 0x0400_0000 onwards.
+
+The documentation below applies to the "simple" variant of the audio module ("audio_simple").
 
 The registers available are described below :
 
@@ -33,7 +33,7 @@ The registers available are described below :
     <td>0400_0000</td>
     <td>1</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;FFFF</td>
+    <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td>F23:0: Voice frequency.<br/> Fout = (Fn * Fclk/16777216) Hz.<br/>Fclk = 1MHz</td>
@@ -50,16 +50,13 @@ The registers available are described below :
   <tr>
     <td>0400_0008</td>
     <td>1</td>
-    <td>xxxZ&nbsp;EFTM</td>
+    <td>xxxx&nbsp;xxxM</td>
     <td>WWWW&nbsp;WWWW</td>
-    <td>AAAA&nbsp;DDDD</td>
-    <td>SSSS&nbsp;RRRR</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>xxxx&nbsp;xxxx</td>
     <td>
       Z = enable sync with (voice - 1)%3
-      <br/>E = enable voice (mix voice into output)
-      <br/>F = route voice through filter
-      <br/>T = Test (lock oscillator at 0)
-      <br/>M = enable ring modulation with (voice-1)%3
+      <br/>M = enable ring modulation with (voice-1)%4
       <br/>
       <br/>W7:0 = Waveform select.
       <br/>
@@ -70,10 +67,6 @@ The registers available are described below :
         <li>`0000_0010` = sawtooth</li>
         <li>`0000_0001` = triangle</li>
       </ul>
-      <br/>AAAA = Attack rate (see docs)
-      <br/>DDDD = Decay rate
-      <br/>SSSS = Sustain volume
-      <br/>RRRR = Release rate
     </td>
   </tr>
   <tr>
@@ -82,18 +75,16 @@ The registers available are described below :
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xxxG</td>
+    <td>VVVV&nbsp;VVVV</td>
     <td>
-      G = oscillator gate
-      <br/>1 = trigger note
-      <br/>0 = release note
+      V = volume (0..255)
     </td>
   </tr>
   <tr>
     <td>0400_0010</td>
     <td>2</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;FFFF</td>
+    <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td></td>
@@ -110,10 +101,10 @@ The registers available are described below :
   <tr>
     <td>0400_0018</td>
     <td>2</td>
-    <td>xxxZ&nbsp;EFTM</td>
+    <td>xxxx&nbsp;xxxM</td>
     <td>WWWW&nbsp;WWWW</td>
-    <td>AAAA&nbsp;DDDD</td>
-    <td>SSSS&nbsp;RRRR</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>xxxx&nbsp;xxxx</td>
     <td>
     </td>
   </tr>
@@ -123,15 +114,16 @@ The registers available are described below :
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xxxG</td>
+    <td>VVVV&nbsp;VVVV</td>
     <td>
     </td>
   </tr>
+  <!-- 3 -->
   <tr>
     <td>0400_0020</td>
     <td>3</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;FFFF</td>
+    <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
     <td></td>
@@ -148,10 +140,10 @@ The registers available are described below :
   <tr>
     <td>0400_0028</td>
     <td>3</td>
-    <td>xxxZ&nbsp;EFTM</td>
+    <td>xxxx&nbsp;xxxM</td>
     <td>WWWW&nbsp;WWWW</td>
-    <td>AAAA&nbsp;DDDD</td>
-    <td>SSSS&nbsp;RRRR</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>xxxx&nbsp;xxxx</td>
     <td>
     </td>
   </tr>
@@ -161,53 +153,46 @@ The registers available are described below :
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xxxG</td>
+    <td>VVVV&nbsp;VVVV</td>
     <td>
     </td>
   </tr>
   <tr>
     <td>0400_0030</td>
-    <td>GLOBAL<br/>FILTER</td>
+    <td>4</td>
+    <td>xxxx&nbsp;xxxx</td>
     <td>FFFF&nbsp;FFFF</td>
     <td>FFFF&nbsp;FFFF</td>
-    <td>QQQQ&nbsp;QQQQ</td>
-    <td>QQQQ&nbsp;QQQQ</td>
-    <td>
-      F = filter frequency; F = 2 x sin(pi x Fc/44100) * 32768.0;
-      <br/>Q = filter Q1;  Q = (1/Q) * 16384
-      <br/>
-    </td>
+    <td>FFFF&nbsp;FFFF</td>
+    <td></td>
   </tr>
   <tr>
     <td>0400_0034</td>
-    <td>GLOBAL<br/>FILTER</td>
+    <td>4</td>
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xxTT</td>
-    <td>
-      T = filter type
-      <br/>`0` = Low pass
-      <br/>`1` = High pass
-      <br/>`2` = Bandpass
-      <br/>`3` = Notch pass
-    </td>
+    <td>xxxx&nbsp;PPPP</td>
+    <td>PPPP&nbsp;PPPP</td>
+    <td></td>
   </tr>
   <tr>
     <td>0400_0038</td>
-    <td>INTERNAL USE ONLY</td>
+    <td>4</td>
+    <td>xxxx&nbsp;xxxM</td>
+    <td>WWWW&nbsp;WWWW</td>
     <td>xxxx&nbsp;xxxx</td>
     <td>xxxx&nbsp;xxxx</td>
-    <td>xxxx&nbsp;xMMM</td>
-    <td>xxxx&nbsp;xSSS</td>
     <td>
-      M = ring mod output from channel 3,2,1
-      <br/>S = sync output from channel 3,2,1
     </td>
   </tr>
-
-
+  <tr>
+    <td>0400_003C</td>
+    <td>4</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>xxxx&nbsp;xxxx</td>
+    <td>VVVV&nbsp;VVVV</td>
+    <td>
+    </td>
+  </tr>
 </table>
-
-
-# Register bank details

@@ -20,7 +20,7 @@
 `default_nettype none
 
 `include "./picosoc/gpio_led/gpio_led.vh"
-`include "./picosoc/audio/audio.vh"
+`include "./picosoc/audio/audio_simple.vh"
 `include "./picosoc/timer_counter/timer_counter.vh"
 // `include "./picosoc/memory/spiflash.v"
 `include "./picosoc/memory/spimemio.v"
@@ -156,6 +156,7 @@ module top (
 		.PROGADDR_RESET(32'h0005_0000), // beginning of user space in SPI flash
 		.PROGADDR_IRQ(32'h0005_0010),
 		.MEM_WORDS(1024),                // use 4KBytes of block RAM by default (8 RAMS)
+		.STACKADDR(1024),   /* stack addr = byte offset; stack starts at 0x400, grows downward. Data starts at 0x400+. */
 		.ENABLE_IRQ(1)
 		) soc (
 		.clk          (CLK         ),
