@@ -5,6 +5,7 @@
 #include "video.h"
 #include "songplayer.h"
 #include "uart.h"
+#include "graphics_data.h"
 
 // a pointer to this is a null pointer, but the compiler does not
 // know that because "sram" is a linker symbol from sections.lds.
@@ -35,36 +36,26 @@ uint32_t set_timer_counter(uint32_t val); asm (
     "ret\n"
 );
 
-const uint32_t background_texture[] = {
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0
-};
-
-const uint32_t happy_face_texture[] = {
-  0,0,7,7,7,0,0,0,
-  0,7,0,0,0,7,0,0,
-  7,0,7,0,7,0,7,0,
-  7,0,0,0,0,0,7,0,
-  7,0,7,0,7,0,7,0,
-  7,0,0,7,0,0,7,0,
-  0,7,0,0,0,7,0,0,
-  0,0,7,7,7,0,0,0
-};
-
 void setup_screen() {
-  vid_set_x_ofs(0);
-  vid_set_y_ofs(0);
-  vid_set_texture(0, background_texture);
-  vid_set_texture(1, happy_face_texture);
-  for (int x = 0; x < 40; x++) {
-    for (int y = 0; y < 30; y++) {
-      vid_set_tile(x, y, ((x+y)&1));
+  vid_set_x_ofs(32<<3);
+  vid_set_y_ofs(32<<3);
+  int tex,x,y;
+
+  for (tex = 0; tex < 64; tex++) {
+    for (x = 0; x < 8; x++) {
+      for (y = 0 ; y < 8; y++) {
+        int texrow = tex >> 3;   // 0-7, row in texture map
+        int texcol = tex & 0x07; // 0-7, column in texture map
+        int pixx = (texcol<<3)+x;
+        int pixy = (texrow<<3)+y;
+        uint32_t pixel = texture_data[(pixy<<6)+pixx];
+        vid_set_texture_pixel(tex, x, y, pixel);
+      }
+    }
+  }
+  for (x = 0; x < 64; x++) {
+    for (y = 0; y < 64; y++) {
+      vid_set_tile(x,y,tile_data[(y<<6)+x]);
     }
   }
 }
@@ -115,9 +106,28 @@ void main() {
     // (the music routine runs from the timer interrupt)
     set_timer_counter(counter_frequency);
 
-    // waste some time (perhaps this should be a "wait for IRQ intstruction" instead)
+    int xofs = 0;
+    int xincr = 1;
+    int yofs = 15<<3;
+    int yincr = 1;
+
+    int maxx = (63-40) << 3;
+    int maxy = (63-30) << 3;
+
     uint32_t time_waster = 0;
     while (1) {
         time_waster = time_waster + 1;
+        if ((time_waster & 0xfff) == 0xfff) {
+          xofs += xincr;
+          if ((xofs >= maxx) || (xofs == 0)) {
+            xincr = -xincr;
+          }
+          yofs += yincr;
+          if ((yofs == 0) || (yofs >= maxy)) {
+            yincr = -yincr;
+          }
+          vid_set_x_ofs(xofs&511);
+          vid_set_y_ofs(yofs&511);
+        }
     }
 }

@@ -14,7 +14,9 @@
 #define reg_video_yofs (*(volatile uint32_t*)0x05000004)
 
 void vid_set_texture(uint32_t texnum, const uint32_t *data);
+void vid_set_texture_pixel(uint32_t texnum, uint32_t x, uint32_t y, uint32_t pixel);
 void vid_set_tile(uint32_t x, uint32_t y, uint32_t texture);
+
 void vid_set_x_ofs(uint32_t x);
 void vid_set_y_ofs(uint32_t y);
 

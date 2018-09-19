@@ -52,7 +52,7 @@ module video
   wire [2:0] texture_read_data;
 
   wire [9:0] xofs = config_register_bank[0][8:0]<<1;
-  wire [9:0] yofs = config_register_bank[0][8:0]<<1;
+  wire [9:0] yofs = config_register_bank[1][8:0]<<1;
 
   wire [9:0] effective_y = ypos+yofs;
   wire [9:0] effective_x = xpos+xofs;
@@ -71,9 +71,9 @@ module video
     .wclk(clk), .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[2:0])
   );
 
-  assign vga_r = video_active && texture_read_data[2];
+  assign vga_r = video_active && texture_read_data[0];
   assign vga_g = video_active && texture_read_data[1];
-  assign vga_b = video_active && texture_read_data[0];
+  assign vga_b = video_active && texture_read_data[2];
 
 	always @(posedge clk) begin
 		if (iomem_valid && reg_write) begin

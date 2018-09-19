@@ -1,11 +1,16 @@
 #include "video.h"
 
+void vid_set_texture_pixel(uint32_t texnum, uint32_t x, uint32_t y, uint32_t pixel)
+{
+  reg_video_texmem[(texnum << 6) + (y << 3) + x] = pixel;
+}
+
 void vid_set_texture(uint32_t texnum, const uint32_t *data)
 {
   int ofs = 0;
   for (int y = 0; y < 8; y++) {
     for (int x = 0; x < 8; x++) {
-      reg_video_texmem[texnum + ofs] = data[ofs];
+      reg_video_texmem[texnum<<6 + ofs] = data[ofs];
       ++ofs;
     }
   }
