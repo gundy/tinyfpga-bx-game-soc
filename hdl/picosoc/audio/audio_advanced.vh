@@ -1,8 +1,7 @@
 //
 // audio peripheral for game soc
 //
-
-// TODO everything
+// this file is a work in progress
 
 `ifndef __GAME_SOC_AUDIO__
 `define __GAME_SOC_AUDIO__
@@ -67,7 +66,6 @@ module audio
 
       // set some "sane" values for the filter too
       config_register_bank[12] <= { {6{1'b0}}, DEFAULT_FILTER_FREQ, {6{1'b0}}, DEFAULT_FILTER_Q };
-		end else begin
 		end
 	end
 

@@ -1,14 +1,14 @@
-`ifndef __TILE_MEMORY__
-`define __TILE_MEMORY__
+`ifndef __SPRITE_MEMORY__
+`define __SPRITE_MEMORY__
 
-// 6 BRAMS
-module tile_memory (
+// 4 BRAMS
+module sprite_memory (
     input rclk, wclk, wen, ren,
     input [11:0] waddr, raddr,
     input [5:0] wdata,
     output reg [5:0] rdata
 );
-    reg [5:0] mem [0:4095];   // enough memory for 80x50 map of tiles // uses ~6 BRAMS of Ice40
+    reg [3:0] mem [0:4095];   // enough memory for 16 16x16 sprites (with transparency)
     always @(posedge rclk) begin
       if (ren)
         rdata <= mem[raddr];

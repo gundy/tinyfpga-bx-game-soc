@@ -8,7 +8,7 @@ The planned peripherals are:
 
 * On-board LED
 * Serial UART
-* [planned] an IRQ-based timer/counter
+* _an IRQ-based timer/counter_ (included with picorv32).
 * [planned] a 3-channel audio synthesizer
 * [planned] Graphics output
  * 320x240 resolution
@@ -21,7 +21,8 @@ Planned IO locations for the devices are:
 
 | MEM_ADDR (hex) | Peripheral |
 | ---------- | ---------- |
-| 0x0000_0000 -> 0x0000_0400 | SRAM |
+| 0x0000_0000 -> 0x0000_0c00 | SRAM |
+| 0x000
 | 0x0005_0000 -> 0x0010_0000 | SPI Flash (usable region) |
 | 0x0005_0000 | reset vector (when the CPU is reset it starts executing code here) |
 | 0x0005_0010 | IRQ vector (when an IRQ is triggered, CPU jumps here) |

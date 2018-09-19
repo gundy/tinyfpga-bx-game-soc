@@ -13,11 +13,9 @@ module gpio_led
   input resetn,
   input clk,
 	input iomem_valid,
-	output reg iomem_ready,
 	input [3:0]  iomem_wstrb,
 	input [31:0] iomem_addr,
 	input [31:0] iomem_wdata,
-	output reg [31:0] iomem_rdata,
   output led);
 
 	reg [31:0] gpio;
@@ -27,10 +25,7 @@ module gpio_led
 		if (!resetn) begin
 			gpio <= 0;
 		end else begin
-			iomem_ready <= 0;
-			if (iomem_valid && !iomem_ready) begin
-				iomem_ready <= 1;
-				iomem_rdata <= gpio;
+			if (iomem_valid) begin
 				if (iomem_wstrb[0]) gpio[ 7: 0] <= iomem_wdata[ 7: 0];
 				if (iomem_wstrb[1]) gpio[15: 8] <= iomem_wdata[15: 8];
 				if (iomem_wstrb[2]) gpio[23:16] <= iomem_wdata[23:16];

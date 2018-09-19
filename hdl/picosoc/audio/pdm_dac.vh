@@ -18,22 +18,22 @@
  * (The accumulator has to be an extra bit wider than data-in to accomodate
  *  the overflow (output) bit).
  */
-module pdm_dac #(parameter DATA_BITS = 12)(
-  input signed [DATA_BITS-1:0] din,
+module pdm_dac #(parameter SAMPLE_BITS = 12)(
+  input signed [SAMPLE_BITS-1:0] din,
   input wire clk,
   output wire dout
 );
 
-reg [DATA_BITS:0] accumulator;
-wire [DATA_BITS-1:0] unsigned_din;
+reg [SAMPLE_BITS:0] accumulator;
+wire [SAMPLE_BITS-1:0] unsigned_din;
 
-assign unsigned_din = din ^ (2**(DATA_BITS-1));
+assign unsigned_din = din ^ (2**(SAMPLE_BITS-1));
 
 always @(posedge clk) begin
-  accumulator <= (accumulator[DATA_BITS-1 : 0] + unsigned_din);
+  accumulator <= (accumulator[SAMPLE_BITS-1 : 0] + unsigned_din);
 end
 
-assign dout = accumulator[DATA_BITS];
+assign dout = accumulator[SAMPLE_BITS];
 
 endmodule
 
