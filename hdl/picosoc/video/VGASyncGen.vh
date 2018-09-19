@@ -1,14 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Company: Ridotech
 // Engineer: Juan Manuel Rico
-// 
+//
 // Create Date:    25/03/2018
 // Module Name:    VGASyncGen
 // Description:    Basic control for 640x480@72Hz VGA signal.
 //
-// Dependencies: 
+// Dependencies:
 //
-// Revision: 
+// Revision:
 // Revision 0.01 - File Created for Roland Coeurjoly (RCoeurjoly) in 640x480@85Hz.
 // Revision 0.02 - Change for 640x480@60Hz.
 // Revision 0.03 - Solved some mistakes.
@@ -16,87 +16,67 @@
 // Revision 0.05 - Eliminate 'color_px' and 'red_monitor', green_monitor', 'blue_monitor' (Sergio Cuenca).
 // Revision 0.06 - Create 'FDivider' parameter for PLL.
 //
-// Additional Comments: 
+// Additional Comments:
 //
 //////////////////////////////////////////////////////////////////////////////////
-module VGASyncGen #(
-            parameter FDivider = 62         // Feedback divider for 16Mhz (default) 83 for 12Mhz.
-)
-(
-            input wire       clk,           // Input clock (12Mhz or 16Mhz)
-            output wire      hsync,         // Horizontal sync out
-            output wire      vsync,         // Vertical sync out
-            output reg [9:0] x_px,          // X position for actual pixel.
-            output reg [9:0] y_px,          // Y position for actual pixel.
-            output wire      activevideo,   // Video is actived.
-//            output wire      endframe,      // End for actual frame.
-            output wire      px_clk         // Pixel clock.
-         );
+module VGASyncGen (
+  input wire       clk,           // Input clock (12Mhz or 16Mhz)
+  output wire      hsync,         // Horizontal sync out
+  output wire      vsync,         // Vertical sync out
+  output reg [9:0] x_px,          // X position for actual pixel.
+  output reg [9:0] y_px,          // Y position for actual pixel.
+  output wire      activevideo,   // Video is actived.
+  output wire      px_clk         // Pixel clock.
+);
 
-    // Generated values for pixel clock of 31.5Mhz and 72Hz frame frecuency (12Mhz - iceZum Alhambra).
-    // # icepll -i12 -o31.5
-    //
-    // F_PLLIN:    12.000 MHz (given)
-    // F_PLLOUT:   31.500 MHz (requested)
-    // F_PLLOUT:   31.500 MHz (achieved)
-    //
-    // FEEDBACK: SIMPLE
-    // F_PFD:   12.000 MHz
-    // F_VCO: 1008.000 MHz
-    //
-    // DIVR:  0 (4'b0000)
-    // DIVF: 83 (7'b1010011)
-    // DIVQ:  5 (3'b101)
-    //
-    // FILTER_RANGE: 1 (3'b001)
-    //
+    // generated values for 640x480X60Hz, 25.175Mhz pixel clock (achieved 25MHz)
+    // based on input clock 16MHz
 
-    // Generated values for pixel clock of 31.5Mhz and 72Hz frame frecuency (16Mhz - TinyFPGA-B2).
-    // # icepll -i16 -o31.5
-    //
-    // F_PLLIN:    16.000 MHz (given)
-    // F_PLLOUT:   31.500 MHz (requested)
-    // F_PLLOUT:   31.500 MHz (achieved)
-    //
-    // FEEDBACK: SIMPLE
-    // F_PFD:   16.000 MHz
-    // F_VCO: 1008.000 MHz
-    //
-    // DIVR:  0 (4'b0000)
-    // DIVF: 62 (7'b0111110)
-    // DIVQ:  5 (3'b101)
-    //
-    // FILTER_RANGE: 1 (3'b001)
-    //
+    SB_PLL40_CORE #(
+      .FEEDBACK_PATH("SIMPLE"),
+      .PLLOUT_SELECT("GENCLK"),
+      .DIVR(4'b0000),		// DIVR =  0
+      .DIVF(7'b0110001),	// DIVF = 49
+      .DIVQ(3'b101),		// DIVQ =  5
+      .FILTER_RANGE(3'b001)	// FILTER_RANGE = 1
+    ) pixel_clock_generator (
+      .REFERENCECLK(clk),
+      .PLLOUTCORE(px_clk),
+      .RESETB(1'b1),
+      .BYPASS(1'b0)
+    );
 
-    SB_PLL40_CORE #(.FEEDBACK_PATH("SIMPLE"),
-                    .PLLOUT_SELECT("GENCLK"),
-                    .DIVR(4'b0000),
-                    .DIVF(FDivider),
-                    .DIVQ(3'b101),
-                    .FILTER_RANGE(3'b001)
-            )
-            uut
-            (
-                    .REFERENCECLK(clk),
-                    .PLLOUTCORE(px_clk),
-                    .RESETB(1'b1),
-                    .BYPASS(1'b0)
-              );
+    //////////////////////////////////////////////////////////////
+    // https://arachnoid.com/modelines/  - 640x480 @ 60Hz
+    //////////////////////////////////////////////////////////////
+    // 21: [PIXEL FREQ]                :    25.263360
+    //  1: [H PIXELS RND]              :   640.000000
+    //  2: [V LINES RND]               :   480.000000
+    // 14: [V FRAME RATE]              :    60.000000
+    //  4: [TOP MARGIN (LINES)]        :     9.000000
+    //  5: [BOT MARGIN (LINES)]        :     9.000000
+    //  8: [V SYNC+BP]                 :    17.000000
+    //  9: [V BACK PORCH]              :    14.000000
+    // 15: [LEFT MARGIN (PIXELS)]      :     8.000000
+    // 16: [RIGHT MARGIN (PIXELS)]     :     8.000000
+    // 17: [TOTAL ACTIVE PIXELS]       :   656.000000
+    // 19: [H BLANK (PIXELS)]          :   160.000000
+    // 17: [H SYNC (PIXELS)]           :    64.000000
+    // 18: [H FRONT PORCH (PIXELS)]    :    16.000000
+    // 36: [V ODD FRONT PORCH(LINES)]  :     1.000000
 
-    /*
-    http://www.epanorama.net/faq/vga2rgb/calc.html
-    [*User-Defined_mode,(640X480)]
-    PIXEL_CLK   =   31500
-    H_DISP      =   640
-    V_DISP      =   480
-    H_FPORCH    =   24
-    H_SYNC      =   40
-    H_BPORCH    =   128
-    V_FPORCH    =   9
-    V_SYNC      =   3
-    V_BPORCH    =   28
-    */
+    // 20: [TOTAL PIXELS]              :   816.000000
+    //  3: [V FIELD RATE RQD]          :    60.000000
+    //  6: [INTERLACE]                 :     0.000000
+    //  7: [H PERIOD EST]              :    32.297929
+    // 10: [TOTAL V LINES]             :   516.000000
+    // 11: [V FIELD RATE EST]          :    60.003367
+    // 12: [H PERIOD]                  :    32.299742
+    // 13: [V FIELD RATE]              :    60.000000
+    // 18: [IDEAL DUTY CYCLE]          :    20.310078
+    // 22: [H FREQ]                    :    30.960000
+
+    /////////////////////////////////////////////////////////////
 
     // Video structure constants.
     //
@@ -114,17 +94,18 @@ module VGASyncGen #(
     //       |_|                              |_|
     //       |B|
     //       |---------------A----------------|
-    //   
+    //
     // (Same structure for vertical signals).
     //
-    parameter activeHvideo = 640;               // Width of visible pixels.
-    parameter activeVvideo =  480;              // Height of visible lines.
-    parameter hfp = 24;                         // Horizontal front porch length.
-    parameter hpulse = 40;                      // Hsync pulse length.
-    parameter hbp = 128;                        // Horizontal back porch length.
-    parameter vfp = 9;                          // Vertical front porch length.
-    parameter vpulse = 3;                       // Vsync pulse length.
-    parameter vbp = 28;                         // Vertical back porch length.
+    parameter activeHvideo = 640;               // Number of horizontal pixels.
+    parameter hfp = 10;                         // Horizontal front porch length.
+    parameter hpulse = 96;                      // Hsync pulse length.
+    parameter hbp = 54;                         // Horizontal blank (back porch) length.
+
+    parameter activeVvideo =  480;              // Number of vertical lines.
+    parameter vfp = 2;                          // Vertical front porch length.
+    parameter vpulse = 2;                       // Vsync pulse length.
+    parameter vbp = 41;                         // Vertical back porch length.
     parameter blackH = hfp + hpulse + hbp;      // Hide pixels in one line.
     parameter blackV = vfp + vpulse + vbp;      // Hide lines in one frame.
     parameter hpixels = blackH + activeHvideo;  // Total horizontal pixels.

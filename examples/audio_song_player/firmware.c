@@ -52,16 +52,18 @@ const uint32_t happy_face_texture[] = {
   7,0,7,0,7,0,7,0,
   7,0,0,0,0,0,7,0,
   7,0,7,0,7,0,7,0,
-  7,0,1,7,1,0,7,0,
+  7,0,0,7,0,0,7,0,
   0,7,0,0,0,7,0,0,
   0,0,7,7,7,0,0,0
 };
 
 void setup_screen() {
+  vid_set_x_ofs(0);
+  vid_set_y_ofs(0);
   vid_set_texture(0, background_texture);
   vid_set_texture(1, happy_face_texture);
   for (int x = 0; x < 40; x++) {
-    for (int y = 0; y < 25; y++) {
+    for (int y = 0; y < 30; y++) {
       vid_set_tile(x, y, ((x+y)&1));
     }
   }
