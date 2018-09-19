@@ -1,6 +1,8 @@
 /*
  * Audio related functions and structures
  */
+#ifndef __TINYSOC_AUDIO__
+#define __TINYSOC_AUDIO__
 
 #include <stdint.h>
 
@@ -19,3 +21,5 @@
 #define WAVE_NONE     0
 
 #define reg_audio ((volatile uint32_t*)0x04000000)
+
+#endif

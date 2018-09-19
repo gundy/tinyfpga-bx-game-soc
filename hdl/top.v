@@ -81,42 +81,41 @@ module top (
 	);
 
 	wire        iomem_valid;
-	reg         led_iomem_ready;
-	reg         audio_iomem_ready;
-	reg         video_iomem_ready;
 
 	wire [3:0]  iomem_wstrb;
 	wire [31:0] iomem_addr;
 	wire [31:0] iomem_wdata;
-	wire  [31:0] iomem_rdata;
+	wire [31:0] iomem_rdata;
 
-	wire iomem_ready = led_iomem_ready || audio_iomem_ready || video_iomem_ready;
+	// until we get gpio/i2c reading happening, nothing is read from iomem
+	wire iomem_ready = 1'b1;
+
+	// assign to i2c/gpio input when needed
+	assign iomem_rdata =  32'h 0000_0000;
+
 
 	// enable signals for each of the peripherals
-	wire gpio_en, audio_en, video_en;
-	assign gpio_en = (iomem_addr[31:24] == 8'h03);  /* LED mapped to 0x03xx_xxxx */
-	assign audio_en = (iomem_addr[31:24] == 8'h04); /* Audio device mapped to 0x04xx_xxxx */
-  assign video_en = (iomem_addr[31:24] == 8'h05); /* Video device mapped to 0x05xx_xxxx */
+	wire led_en   = (iomem_addr[31:24] == 8'h03);  /* LED mapped to 0x03xx_xxxx */
+	wire audio_en = (iomem_addr[31:24] == 8'h04); /* Audio device mapped to 0x04xx_xxxx */
+	wire video_en = (iomem_addr[31:24] == 8'h05); /* Video device mapped to 0x05xx_xxxx */
 
-	wire [31:0] iomem_gpio_rdata, iomem_audio_rdata, iomem_video_rdata;
-	assign iomem_rdata = gpio_en ? iomem_gpio_rdata
-											: audio_en ? iomem_audio_rdata
-										  : video_en ? iomem_video_rdata
-											: 32'h 0000_0000;
+	//////////////////////////////////////////
+	// LED
+	//////////////////////////////////////////
 
-
-	/* map peripherals into IO space */
 	gpio_led led_peripheral(
 		.clk(CLK),
 		.resetn(resetn),
-		.iomem_valid(iomem_valid && gpio_en),
-		.iomem_ready(led_iomem_ready),
+		.iomem_valid(iomem_valid && led_en),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
 		.iomem_wdata(iomem_wdata),
-		.iomem_rdata(iomem_gpio_rdata),
 		.led(LED)
 	);
+
+	//////////////////////////////////////////
+	// AUDIO
+	//////////////////////////////////////////
 
 	wire audio_data;
 	assign AUDIO_LEFT = audio_data;
@@ -126,28 +125,28 @@ module top (
 		.resetn(resetn),
 		.audio_out(audio_data),
 		.iomem_valid(iomem_valid && audio_en),
-		.iomem_ready(audio_iomem_ready),
+		.iomem_wstrb(iomem_wstrb),
+		.iomem_addr(iomem_addr),
+		.iomem_wdata(iomem_wdata)
+	);
+
+	//////////////////////////////////////////
+	// VIDEO
+	//////////////////////////////////////////
+
+	video video_peripheral(
+		.clk(CLK),
+		.resetn(resetn),
+		.iomem_valid(iomem_valid && video_en),
 		.iomem_wstrb(iomem_wstrb),
 		.iomem_addr(iomem_addr),
 		.iomem_wdata(iomem_wdata),
-		.iomem_rdata(iomem_audio_rdata)
+		.vga_hsync(VGA_HSYNC),
+		.vga_vsync(VGA_VSYNC),
+		.vga_r(VGA_R),
+		.vga_g(VGA_G),
+		.vga_b(VGA_B)
 	);
-
-video video_peripheral(
-	.clk(CLK),
-	.resetn(resetn),
-	.iomem_valid(iomem_valid && video_en),
-	.iomem_ready(video_iomem_ready),
-	.iomem_wstrb(iomem_wstrb),
-	.iomem_addr(iomem_addr),
-	.iomem_wdata(iomem_wdata),
-	.iomem_rdata(iomem_video_rdata),
-	.vga_hsync(VGA_HSYNC),
-	.vga_vsync(VGA_VSYNC),
-	.vga_r(VGA_R),
-	.vga_g(VGA_G),
-	.vga_b(VGA_B)
-);
 
 
 	picosoc #(

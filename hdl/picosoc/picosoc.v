@@ -101,7 +101,7 @@ module picosoc (
 	reg ram_ready;
 	wire [31:0] ram_rdata;
 
-	assign iomem_valid = mem_valid && (mem_addr[31:24] > 8'h 01);
+	assign iomem_valid = mem_valid && (mem_addr[31:24] > 8'h 02);
 	assign iomem_wstrb = mem_wstrb;
 	assign iomem_addr = mem_addr;
 	assign iomem_wdata = mem_wdata;

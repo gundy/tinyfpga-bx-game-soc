@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include "audio.h"
+#include "video.h"
 #include "songplayer.h"
 #include "uart.h"
 
@@ -9,13 +10,11 @@
 // know that because "sram" is a linker symbol from sections.lds.
 extern uint32_t sram;
 
-//#define irq_handler_addr (*(volatile uint32_t*)0x00000008)
-
 #define reg_spictrl (*(volatile uint32_t*)0x02000000)
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
 #define reg_leds  (*(volatile uint32_t*)0x03000000)
 
-extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss,_heap_start;
+extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _heap_start;
 
 extern const struct song_t song_petergun;
 
@@ -36,11 +35,36 @@ uint32_t set_timer_counter(uint32_t val); asm (
     "ret\n"
 );
 
-void play_simple_note() {
-  reg_audio[0]=0x00224;     /* C0 */
-  reg_audio[1]=2048;        /* 50% duty cycle */
-  reg_audio[2]=0x08040000;  /* square wave */
-  reg_audio[3]=255;         /* volume 255 */
+const uint32_t background_texture[] = {
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+
+const uint32_t happy_face_texture[] = {
+  0,0,7,7,7,0,0,0,
+  0,7,0,0,0,7,0,0,
+  7,0,7,0,7,0,7,0,
+  7,0,0,0,0,0,7,0,
+  7,0,7,0,7,0,7,0,
+  7,0,1,7,1,0,7,0,
+  0,7,0,0,0,7,0,0,
+  0,0,7,7,7,0,0,0
+};
+
+void setup_screen() {
+  vid_set_texture(0, background_texture);
+  vid_set_texture(1, happy_face_texture);
+  for (int x = 0; x < 40; x++) {
+    for (int y = 0; y < 25; y++) {
+      vid_set_tile(x, y, ((x+y)&1));
+    }
+  }
 }
 
 void irq_handler(uint32_t irqs, uint32_t* regs)
@@ -74,13 +98,9 @@ void main() {
     print("Enabling IRQs..\n");
     set_irq_mask(0x00);
 
-    songplayer_init(&song_petergun);
+    setup_screen();
 
-    // zero out .bss section
-    // commented out because this is done in start.S
-    // for (uint32_t *dest = &_sbss; dest < &_ebss;) {
-    //     *dest++ = 0;
-    // }
+    songplayer_init(&song_petergun);
 
     print("Switching to dual IO SPI mode..\n");
 
@@ -88,11 +108,12 @@ void main() {
     reg_spictrl = (reg_spictrl & ~0x007F0000) | 0x00400000;
 
     print("Playing song and blinking\n");
+
+    // set timer interrupt to happen 1/50th sec from now
+    // (the music routine runs from the timer interrupt)
     set_timer_counter(counter_frequency);
 
-//    play_simple_note();
-
-    // blink the user LED
+    // waste some time (perhaps this should be a "wait for IRQ intstruction" instead)
     uint32_t time_waster = 0;
     while (1) {
         time_waster = time_waster + 1;
