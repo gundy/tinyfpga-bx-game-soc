@@ -44,7 +44,9 @@ module video
   // 1: y scroll offset
   // 2,3,4,5: sprite registers for sprites 1-4
 
-	reg [31:0] config_register_bank [0:5];
+  localparam NUM_SPRITES = 8;
+
+	reg [31:0] config_register_bank [0:NUM_SPRITES+1];
   wire [3:0] bank_addr = iomem_addr[5:2];
 
   // todo sprites
@@ -78,29 +80,23 @@ module video
     .wclk(clk), .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[2:0])
   );
 
-  wire[3:0] inbb;
-  wire[13:0] sprite_mem_addr[0:3];
-  sprite sprite0(
-    .screen_xpos(next_xpos), .screen_ypos(half_ypos),
-    .configuration(config_register_bank[2][31:0]),
-    .in_sprite_bounding_box(inbb[0]),
-    .sprite_mem_addr(sprite_mem_addr[0]));
-  sprite sprite1(
-    .screen_xpos(next_xpos), .screen_ypos(half_ypos),
-    .configuration(config_register_bank[3][31:0]),
-    .in_sprite_bounding_box(inbb[1]),
-    .sprite_mem_addr(sprite_mem_addr[1]));
-  sprite sprite2(
-    .screen_xpos(next_xpos), .screen_ypos(half_ypos),
-    .configuration(config_register_bank[4][31:0]),
-    .in_sprite_bounding_box(inbb[2]),
-    .sprite_mem_addr(sprite_mem_addr[2]));
-  sprite sprite3(
-    .screen_xpos(next_xpos), .screen_ypos(half_ypos),
-    .configuration(config_register_bank[5][31:0]),
-    .in_sprite_bounding_box(inbb[3]),
-    .sprite_mem_addr(sprite_mem_addr[3])
-  );
+
+  wire[NUM_SPRITES-1:0] inbb;
+  wire[13:0] sprite_mem_addr[0:NUM_SPRITES-1];
+
+  generate
+    genvar i;
+    /* generate some voices and wire them to the per-MIDI-note gates */
+    for (i=0; i<NUM_SPRITES; i=i+1)
+    begin : sprites
+      sprite sprite (
+        .screen_xpos(next_xpos), .screen_ypos(half_ypos),
+        .configuration(config_register_bank[i+2][31:0]),
+        .in_sprite_bounding_box(inbb[i]),
+        .sprite_mem_addr(sprite_mem_addr[i])
+      );
+    end
+  endgenerate
 
   localparam CONFIG_R = 26;
   localparam CONFIG_G = 27;
@@ -110,12 +106,20 @@ module video
                                   inbb[1]?sprite_mem_addr[1][13:0]:
                                   inbb[2]?sprite_mem_addr[2][13:0]:
                                   inbb[3]?sprite_mem_addr[3][13:0]:
+                                  inbb[4]?sprite_mem_addr[4][13:0]:
+                                  inbb[5]?sprite_mem_addr[5][13:0]:
+                                  inbb[6]?sprite_mem_addr[6][13:0]:
+                                  inbb[7]?sprite_mem_addr[7][13:0]:
                                   14'h0;
   wire sprite_r = (
                     inbb[0]?config_register_bank[2][CONFIG_R]
                     :inbb[1]?config_register_bank[3][CONFIG_R]
                     :inbb[2]?config_register_bank[4][CONFIG_R]
                     :inbb[3]?config_register_bank[5][CONFIG_R]
+                    :inbb[4]?config_register_bank[6][CONFIG_R]
+                    :inbb[5]?config_register_bank[7][CONFIG_R]
+                    :inbb[6]?config_register_bank[8][CONFIG_R]
+                    :inbb[7]?config_register_bank[9][CONFIG_R]
                     :1'b0
                   );
   wire sprite_g = (
@@ -123,6 +127,10 @@ module video
                     :inbb[1]?config_register_bank[3][CONFIG_G]
                     :inbb[2]?config_register_bank[4][CONFIG_G]
                     :inbb[3]?config_register_bank[5][CONFIG_G]
+                    :inbb[4]?config_register_bank[6][CONFIG_G]
+                    :inbb[5]?config_register_bank[7][CONFIG_G]
+                    :inbb[6]?config_register_bank[8][CONFIG_G]
+                    :inbb[7]?config_register_bank[9][CONFIG_G]
                     :1'b0
                   );
   wire sprite_b = (
@@ -130,6 +138,10 @@ module video
                     :inbb[1]?config_register_bank[3][CONFIG_B]
                     :inbb[2]?config_register_bank[4][CONFIG_B]
                     :inbb[3]?config_register_bank[5][CONFIG_B]
+                    :inbb[4]?config_register_bank[6][CONFIG_B]
+                    :inbb[5]?config_register_bank[7][CONFIG_B]
+                    :inbb[6]?config_register_bank[8][CONFIG_B]
+                    :inbb[7]?config_register_bank[9][CONFIG_B]
                     :1'b0
                   );
 
@@ -166,6 +178,10 @@ module video
       config_register_bank[3]<=32'h0;
       config_register_bank[4]<=32'h0;
       config_register_bank[5]<=32'h0;
+      config_register_bank[6]<=32'h0;
+      config_register_bank[7]<=32'h0;
+      config_register_bank[8]<=32'h0;
+      config_register_bank[9]<=32'h0;
     end
 	end
 

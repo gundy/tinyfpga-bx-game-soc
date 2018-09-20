@@ -6,6 +6,7 @@
 #include "songplayer.h"
 #include "uart.h"
 #include "graphics_data.h"
+#include "sine_table.h"
 
 // a pointer to this is a null pointer, but the compiler does not
 // know that because "sram" is a linker symbol from sections.lds.
@@ -60,10 +61,11 @@ void setup_screen() {
     }
   }
   //vid_random_init_sprite_memory();
+  uint32_t cols[] = { 1,2,3,4,5,6,7,6 };
   vid_write_sprite_memory(0, sprites[0]);
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<8; i++) {
     vid_set_sprite_pos(i,64+(i<<6),64+(i<<5));
-    vid_set_sprite_colour(i,i+1);
+    vid_set_sprite_colour(i,cols[i]);
     vid_set_image_for_sprite(i, 0);
     vid_enable_sprite(i, 1);
   }
@@ -124,9 +126,11 @@ void main() {
     int maxy = (63-30) << 3;
 
     uint32_t time_waster = 0;
+    uint32_t sprite_pos = 0;
     while (1) {
         time_waster = time_waster + 1;
         if ((time_waster & 0x7ff) == 0x7ff) {
+          /* update screen tile map offsets */
           xofs += xincr;
           if ((xofs >= maxx) || (xofs == 0)) {
             xincr = -xincr;
@@ -137,6 +141,14 @@ void main() {
           }
           vid_set_x_ofs(xofs&511);
           vid_set_y_ofs(yofs&511);
+
+          /* update sprite locations */
+          for (int i=0; i<8; i++) {
+            int xp = 160+sine_table[(sprite_pos+(i<<4))&0xff];
+            int yp = 120+sine_table[64+(sprite_pos+(i<<4))&0xff];
+            vid_set_sprite_pos(i,xp,yp);
+          }
+          sprite_pos++;
         }
     }
 }

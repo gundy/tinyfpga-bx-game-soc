@@ -4,6 +4,7 @@ hardware.bin
 hardware.blif
 hardware.rpt
 hardware.log
+firmware.map
 *.out
 *.vcd
 *.idea
