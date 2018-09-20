@@ -37,6 +37,7 @@ uint32_t set_timer_counter(uint32_t val); asm (
 );
 
 void setup_screen() {
+  vid_init();
   vid_set_x_ofs(32<<3);
   vid_set_y_ofs(32<<3);
   int tex,x,y;
@@ -57,6 +58,14 @@ void setup_screen() {
     for (y = 0; y < 64; y++) {
       vid_set_tile(x,y,tile_data[(y<<6)+x]);
     }
+  }
+  //vid_random_init_sprite_memory();
+  vid_write_sprite_memory(0, sprites[0]);
+  for (int i=0; i<4; i++) {
+    vid_set_sprite_pos(i,64+(i<<6),64+(i<<5));
+    vid_set_sprite_colour(i,i+1);
+    vid_set_image_for_sprite(i, 0);
+    vid_enable_sprite(i, 1);
   }
 }
 
@@ -117,7 +126,7 @@ void main() {
     uint32_t time_waster = 0;
     while (1) {
         time_waster = time_waster + 1;
-        if ((time_waster & 0xfff) == 0xfff) {
+        if ((time_waster & 0x7ff) == 0x7ff) {
           xofs += xincr;
           if ((xofs >= maxx) || (xofs == 0)) {
             xincr = -xincr;

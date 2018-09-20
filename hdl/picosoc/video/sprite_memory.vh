@@ -4,11 +4,11 @@
 // 4 BRAMS
 module sprite_memory (
     input rclk, wclk, wen, ren,
-    input [11:0] waddr, raddr,
-    input [5:0] wdata,
-    output reg [5:0] rdata
+    input [13:0] waddr, raddr,
+    input wdata,
+    output reg rdata
 );
-    reg [3:0] mem [0:4095];   // enough memory for 16 16x16 sprites (with transparency)
+    reg [0:0] mem [0:16383];   // enough memory for 64 16x16 sprites @ 1bpp
     always @(posedge rclk) begin
       if (ren)
         rdata <= mem[raddr];
