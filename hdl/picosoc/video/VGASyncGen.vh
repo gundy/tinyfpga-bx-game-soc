@@ -64,9 +64,9 @@ module VGASyncGen (
     // Basically, we need to find an extra 7 pixel times to pad the line spacing out.
     // I've added the timing to hfp + hbp.
     parameter activeHvideo = 320;    // Number of horizontal pixels.
-    parameter hfp = 12;   // 8        // Horizontal front porch length.
+    parameter hfp = 14;   // 8        // Horizontal front porch length.
     parameter hpulse = 32;           // Hsync pulse length.
-    parameter hbp = 63;  // 60       // Horizontal blank (back porch) length.
+    parameter hbp = 61;  // 60       // Horizontal blank (back porch) length.
 
     parameter activeVvideo =  480;              // Number of vertical lines.
     parameter vfp = 1;                          // Vertical front porch length.

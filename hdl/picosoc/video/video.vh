@@ -69,14 +69,16 @@ module video
   // need to read ahead with tile memory to prevent edge-artifacts
   wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
   tile_memory tilemem(
-    .rclk(clk), .ren(video_active), .raddr(tile_read_address), .rdata(tile_read_data),
-    .wclk(clk), .wen(tilemem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[5:0])
+    .clk(clk),
+    .ren(video_active), .raddr(tile_read_address), .rdata(tile_read_data),
+    .wen(tilemem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[5:0])
   );
 
   wire [11:0] texture_read_address = { tile_read_data[5:0], effective_y[2:0], effective_x[2:0] };
   texture_memory texturemem(
-    .rclk(clk), .ren(video_active), .raddr(texture_read_address), .rdata(texture_read_data),
-    .wclk(clk), .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[2:0])
+    .clk(clk),
+    .ren(video_active), .raddr(texture_read_address), .rdata(texture_read_data),
+    .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[2:0])
   );
 
 
@@ -147,17 +149,10 @@ module video
   wire sprite_read_data;
 
   sprite_memory spritemem(
-    .rclk(clk), .ren(video_active), .raddr(sprite_read_address), .rdata(sprite_read_data),
-    .wclk(clk), .wen(spritemem_write), .waddr(iomem_addr[15:2]), .wdata(iomem_wdata[0])
+    .clk(clk),
+    .ren(video_active), .raddr(sprite_read_address), .rdata(sprite_read_data),
+    .wen(spritemem_write), .waddr(iomem_addr[15:2]), .wdata(iomem_wdata[0])
   );
-
-  // assign vga_r = video_active && ((sprite_read_data && sprite_r) || (~sprite_read_data && texture_read_data[0]));
-  // assign vga_g = video_active && ((sprite_read_data && sprite_g) || (~sprite_read_data && texture_read_data[1]));
-  // assign vga_b = video_active && ((sprite_read_data && sprite_b) || (~sprite_read_data && texture_read_data[2]));
-
-  //assign vga_r = video_active && (inbb[0] || (!sprite_read_data && texture_read_data[0]));
-  //assign vga_g = video_active && (inbb[1] || (!sprite_read_data && texture_read_data[1]));
-  //assign vga_b = video_active && (inbb[2] || (!sprite_read_data && texture_read_data[2]));
 
   assign vga_r = video_active && ((sprite_read_data && sprite_r) || (!sprite_read_data && texture_read_data[0]));
   assign vga_g = video_active && ((sprite_read_data && sprite_g) || (!sprite_read_data && texture_read_data[1]));
