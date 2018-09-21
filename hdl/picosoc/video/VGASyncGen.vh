@@ -15,6 +15,7 @@
 // Revision 0.04 - Change for 640x480@72Hz and output signals 'activevideo' and 'px_clk'.
 // Revision 0.05 - Eliminate 'color_px' and 'red_monitor', green_monitor', 'blue_monitor' (Sergio Cuenca).
 // Revision 0.06 - Create 'FDivider' parameter for PLL.
+// Revision 0.07 - Attempt to create 320x240 resolution at standard TinyFPGA clock of 16MHz (ie. remove PLL)
 //
 // Additional Comments:
 //
@@ -25,56 +26,8 @@ module VGASyncGen (
   output wire      vsync,         // Vertical sync out
   output reg [9:0] x_px,          // X position for actual pixel.
   output reg [9:0] y_px,          // Y position for actual pixel.
-  output wire      activevideo,   // Video is actived.
-  output wire      px_clk         // Pixel clock.
+  output wire      activevideo    // Video is actived.
 );
-
-    // generated values for 640x480X60Hz, 25.175Mhz pixel clock (achieved 25MHz)
-    // based on input clock 16MHz
-
-    SB_PLL40_CORE #(
-      .FEEDBACK_PATH("SIMPLE"),
-      .PLLOUT_SELECT("GENCLK"),
-      .DIVR(4'b0000),		// DIVR =  0
-      .DIVF(7'b0110001),	// DIVF = 49
-      .DIVQ(3'b101),		// DIVQ =  5
-      .FILTER_RANGE(3'b001)	// FILTER_RANGE = 1
-    ) pixel_clock_generator (
-      .REFERENCECLK(clk),
-      .PLLOUTCORE(px_clk),
-      .RESETB(1'b1),
-      .BYPASS(1'b0)
-    );
-
-    //////////////////////////////////////////////////////////////
-    // https://arachnoid.com/modelines/  - 640x480 @ 60Hz
-    //////////////////////////////////////////////////////////////
-    // 21: [PIXEL FREQ]                :    25.263360
-    //  1: [H PIXELS RND]              :   640.000000
-    //  2: [V LINES RND]               :   480.000000
-    // 14: [V FRAME RATE]              :    60.000000
-    //  4: [TOP MARGIN (LINES)]        :     9.000000
-    //  5: [BOT MARGIN (LINES)]        :     9.000000
-    //  8: [V SYNC+BP]                 :    17.000000
-    //  9: [V BACK PORCH]              :    14.000000
-    // 15: [LEFT MARGIN (PIXELS)]      :     8.000000
-    // 16: [RIGHT MARGIN (PIXELS)]     :     8.000000
-    // 17: [TOTAL ACTIVE PIXELS]       :   656.000000
-    // 19: [H BLANK (PIXELS)]          :   160.000000
-    // 17: [H SYNC (PIXELS)]           :    64.000000
-    // 18: [H FRONT PORCH (PIXELS)]    :    16.000000
-    // 36: [V ODD FRONT PORCH(LINES)]  :     1.000000
-
-    // 20: [TOTAL PIXELS]              :   816.000000
-    //  3: [V FIELD RATE RQD]          :    60.000000
-    //  6: [INTERLACE]                 :     0.000000
-    //  7: [H PERIOD EST]              :    32.297929
-    // 10: [TOTAL V LINES]             :   516.000000
-    // 11: [V FIELD RATE EST]          :    60.003367
-    // 12: [H PERIOD]                  :    32.299742
-    // 13: [V FIELD RATE]              :    60.000000
-    // 18: [IDEAL DUTY CYCLE]          :    20.310078
-    // 22: [H FREQ]                    :    30.960000
 
     /////////////////////////////////////////////////////////////
 
@@ -97,15 +50,28 @@ module VGASyncGen (
     //
     // (Same structure for vertical signals).
     //
-    parameter activeHvideo = 640;               // Number of horizontal pixels.
-    parameter hfp = 10;                         // Horizontal front porch length.
-    parameter hpulse = 96;                      // Hsync pulse length.
-    parameter hbp = 54;                         // Horizontal blank (back porch) length.
+
+    // shaving 6 pixels off standard timings to adjust for 25 vs 25.175 clock
+
+    // 320x240 (640x480) @ 75Hz -- based on timings from here:
+    // http://tinyvga.com/vga-timing/640x480@75Hz
+    // horizontal parameters halved, and adjusted slightly to account
+    // for 31.5/32Mhz difference
+
+    // based on the link above, total horizontal pixels are 840 with a 31.5MHz
+    // clock.  Our clock is 32MHz equivalent, so we need 853.333 pixels.
+    // Except, everything is divided by two.  So we need about 427 pixels per line.
+    // Basically, we need to find an extra 7 pixel times to pad the line spacing out.
+    // I've added the timing to hfp + hbp.
+    parameter activeHvideo = 320;    // Number of horizontal pixels.
+    parameter hfp = 12;   // 8        // Horizontal front porch length.
+    parameter hpulse = 32;           // Hsync pulse length.
+    parameter hbp = 63;  // 60       // Horizontal blank (back porch) length.
 
     parameter activeVvideo =  480;              // Number of vertical lines.
-    parameter vfp = 2;                          // Vertical front porch length.
-    parameter vpulse = 2;                       // Vsync pulse length.
-    parameter vbp = 41;                         // Vertical back porch length.
+    parameter vfp = 1;                          // Vertical front porch length.
+    parameter vpulse = 3;                       // Vsync pulse length.
+    parameter vbp = 16;                         // Vertical back porch length.
     parameter blackH = hfp + hpulse + hbp;      // Hide pixels in one line.
     parameter blackV = vfp + vpulse + vbp;      // Hide lines in one frame.
     parameter hpixels = blackH + activeHvideo;  // Total horizontal pixels.
@@ -125,7 +91,7 @@ module VGASyncGen (
     end
 
     // Counting pixels.
-    always @(posedge px_clk)
+    always @(posedge clk)
     begin
         // Keep counting until the end of the line.
         if (hc < hpixels - 1)
