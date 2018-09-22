@@ -38,9 +38,7 @@ void songplayer_init(const struct song_t* song) {
   // reset song player to initial position
   globalctrl.song_pos = 0;
   globalctrl.song_row = -1;
-
-  // 50 ticks per second / 6 = ~ 8 "divisions" played per second
-  globalctrl.ticks_per_div = 6;
+  globalctrl.ticks_per_div = song->ticks_per_div;
 
   globalctrl.tick_div_count = globalctrl.ticks_per_div;
 

@@ -18,7 +18,7 @@ extern uint32_t sram;
 
 extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _heap_start;
 
-extern const struct song_t song_petergun;
+extern const struct song_t song_pacman;
 
 uint32_t counter_frequency = 16000000/50;  /* 50 times per second */
 uint32_t led_state = 0x00000000;
@@ -104,7 +104,7 @@ void main() {
 
     setup_screen();
 
-    songplayer_init(&song_petergun);
+    songplayer_init(&song_pacman);
 
     print("Switching to dual IO SPI mode..\n");
 

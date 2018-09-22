@@ -69,13 +69,14 @@ struct song_bar_t {
 };
 
 struct song_pattern_t {
-  uint32_t bar[3];
+  uint32_t bar[4];
 };
 
 struct song_t {
   int32_t rows_per_bar;
   int32_t song_length;
-
+  int32_t ticks_per_div;
+  
   struct song_instrument_t instruments[16];
   int32_t pattern_map[256];
   struct song_bar_t bars[256];

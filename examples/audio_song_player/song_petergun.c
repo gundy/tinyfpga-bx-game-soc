@@ -51,6 +51,7 @@ const struct envelope_t envelope3 = {
 const struct song_t song_petergun = {
   .song_length =24,
   .rows_per_bar = 16,
+  .ticks_per_div = 6,
   .pattern_map = { 0,0,0,0,1,1,0,0,2,1,0,0, 3,3,3,3,4,4,3,3,5,4,3,3 }, // ,3,6,3,6,4,7,3,6,5,7,3,6 },
   .instruments = {
       {.waveform_select = WAVE_NONE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 2048},  // 0 = no instrument
