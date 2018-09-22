@@ -1,6 +1,6 @@
 
-#include "songplayer.h"
-#include "audio.h"
+#include <songplayer/songplayer.h>
+#include <audio/audio.h>
 
 const struct envelope_t envelope0 = {
   .num_points = 16,
@@ -95,10 +95,10 @@ const struct song_t song_pacman = {
       { .n = {.n=64,.i=5 }},
       { .n = {.n=0,.i=0 }},
       { .n = {.n=72,.i=5 }},
-      { .n = {.n=66,.i=5 }},
+      { .n = {.n=67,.i=5 }},
       { .n = {.n=60,.i=5 }},
       { .n = {.n=0,.i=0 }},
-      { .n = {.n=63,.i=5 }},
+      { .n = {.n=64,.i=5 }},
       { .n = {.n=0,.i=0 }},
       { .n = {.n=0,.i=0 }},
       { .n = {.n=0,.i=0 }}
