@@ -207,7 +207,7 @@ const struct song_t song_pacman = {
         { .n = {.n= 0,.i=0 }},
         { .n = {.n= 0,.i=0 }}, // snare
         { .n = {.n= 0,.i=0 }}, // closed hh
-        { .n = {.n=54,.i=5 }},
+        { .n = {.n=55,.i=5 }},
         { .n = {.n= 0,.i=0 }}
       }
     },
