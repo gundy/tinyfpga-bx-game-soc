@@ -279,8 +279,8 @@ else
                 begin
                   status[29] <= sda;  // SDA should be driven low for slave ACK
                 end
-              if ((bit_count == 18) & read    // Reading and past first data ack
-                  || (bit_count == 36) || (ctrl_reg[31] && bit_count == 27))               // Past first or second data ack
+              if ((bit_count == 18 && (read || ~ctrl_reg[31])) // Register-only write or write-cycle read
+                  || bit_count == 27)  // Register and single data byte
                 begin
                   timer <= t_su_sto;  // 4.0us from spec
                   rtn_state <= stop;
