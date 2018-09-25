@@ -21,8 +21,8 @@ module audio
   localparam ACCUMULATOR_BITS = 24;
   localparam NUM_VOICES = 4;
 
-	reg [31:0] config_register_bank [0:15];
-  wire [3:0] bank_addr = iomem_addr[5:2];
+	reg [31:0] config_register_bank [0:16];
+  wire [4:0] bank_addr = iomem_addr[6:2];
 
   ///////////////////////////////////////////////////////////////////
   //    Handle PicoSoC writing to the config register bank
@@ -33,6 +33,9 @@ module audio
       if (iomem_wstrb[1]) config_register_bank[bank_addr][15: 8] <= iomem_wdata[15: 8];
       if (iomem_wstrb[2]) config_register_bank[bank_addr][23:16] <= iomem_wdata[23:16];
       if (iomem_wstrb[3]) config_register_bank[bank_addr][31:24] <= iomem_wdata[31:24];
+    end
+    if (!resetn) begin
+      config_register_bank[16]<=8'hff;  /* global volume = full scale by default for backwards compatibility */
     end
 	end
 
@@ -77,8 +80,9 @@ module audio
   wire [23:0] voice_freq_increment = config_register_bank[reg_index+REG_FREQ][23:0];
   wire [11:0] voice_pulse_width = config_register_bank[reg_index+REG_PULSEWIDTH][11:0];
 
-  wire signed [8:0] voice_volume = {1'b0,config_register_bank[reg_index+REG_VOLUME][7:0]};
-  //wire signed [8:0] voice_volume = 9'sd255;
+  wire signed [8:0] voice_volume =  |(voice_pipeline_state[3:0])?  /* if we are currently mixing voices, choose channel volume */
+                                        {1'b0,config_register_bank[reg_index+REG_VOLUME][7:0]}
+                                      : {1'b0,config_register_bank[16][7:0]}; /* otherwise, select global volume */
 
   wire voice_wave_select_noise = voice_wave_params[19];
   wire voice_wave_select_pulse = voice_wave_params[18];
@@ -104,13 +108,23 @@ module audio
   wire [SAMPLE_BITS-1:0] tone_noise_unsigned_data = { voice_lfsr[22], voice_lfsr[20], voice_lfsr[16], voice_lfsr[13], voice_lfsr[11], voice_lfsr[7], voice_lfsr[4], voice_lfsr[2], {(SAMPLE_BITS-8){1'b0}} };
   wire [SAMPLE_BITS-1:0] tone_pulse_unsigned_data = (voice_accumulator[ACCUMULATOR_BITS-1 -: PULSEWIDTH_BITS] <= voice_pulse_width) ? MAX_SCALE : 0;
 
-
-  ///////////////////////////////////////////////////////////////////
-  // ADSR envelope generator
-  ///////////////////////////////////////////////////////////////////
-
+    /////////////////////////////////////////////////////////////////////////////
     // produce audio samples
+    /////////////////////////////////////////////////////////////////////////////
+    // this monstrocity may require some explaination..
+    // because we need to re-use the channel-scale multiplier for doing global
+    // volume scaling too, this mux selects the appropriate source to apply to
+    // the scaler.
+    // If we're mixing a normal voice (0-3), then take the logical AND of
+    //  each of the enabled waveforms, and XOR it with 0x80000 to turn it
+    //  into a signed value.
+    // If we've mixed all of the normal voices already, then select the
+    //  "mixed" data so that this can be further scaled by the global volume.
+    //  (see the voice_volume wire definition above, and the scaled_voice_output
+    //   definition below for more info).
     wire signed [SAMPLE_BITS-1:0] unscaled_voice_output =
+       |(voice_pipeline_state[3:0])
+       ?
         (12'b1000_0000_0000 ^  // invert MSB to convert unsigned to signed
             (12'b1111_1111_1111
                 & (voice_wave_select_noise ? tone_noise_unsigned_data : 12'd4095)
@@ -118,7 +132,8 @@ module audio
                 & (voice_wave_select_sawtooth ? tone_sawtooth_unsigned_data : 12'd4095)
                 & (voice_wave_select_triangle ? tone_triangle_unsigned_data : 12'd4095)
               )
-          );
+          )
+        : tmp_mixed_voices[SAMPLE_BITS+1:2];  /* if voice_pipeline has mixed all voices, select output sample so it can be scaled by global volume */
 
   wire signed [SAMPLE_BITS+9-1:0] scaled_voice_output = (unscaled_voice_output * voice_volume) >>> 8;
 
@@ -165,7 +180,7 @@ module audio
       end
       voice_pipeline_state[4]: begin
         // latch sample value out
-        mixed_voices <= tmp_mixed_voices;
+        mixed_voices <= { scaled_voice_output[SAMPLE_BITS-1:0],2'b0 };   /* scaled voice output now contains (global_volume * tmp_mixed_voices) / 256 */
         voice_pipeline_state <= 6'b100000;  // move to "idle" state until next aclk
       end
       voice_pipeline_state[5]: begin

@@ -14,6 +14,8 @@
 #define REG_WAVESELECT  2
 #define REG_VOLUME      3
 
+#define REG_GLOBAL_VOLUME 16
+
 #define WAVE_NOISE    8
 #define WAVE_SQUARE   4
 #define WAVE_SAWTOOTH 2
@@ -21,5 +23,7 @@
 #define WAVE_NONE     0
 
 #define reg_audio ((volatile uint32_t*)0x04000000)
+
+void audio_set_global_volume(uint32_t volume);
 
 #endif

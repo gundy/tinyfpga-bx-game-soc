@@ -26,7 +26,8 @@ START_FILE = $(FIRMWARE_DIR)/start.S
 C_FILES = main.c song_pacman.c \
 	$(INCLUDE_DIR)/songplayer/songplayer.c \
 	$(INCLUDE_DIR)/uart/uart.c \
-  $(INCLUDE_DIR)/video/video.c \
+  	$(INCLUDE_DIR)/video/video.c \
+  	$(INCLUDE_DIR)/audio/audio.c \
 	$(INCLUDE_DIR)/nunchuk/nunchuk.c
 DEFINES = -Dpdm_audio -Dgpio -Dvga -Di2c
 
