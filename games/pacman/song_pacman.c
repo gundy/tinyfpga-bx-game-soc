@@ -65,7 +65,8 @@ const struct song_t song_pacman = {
       // first user defined instrument here:
       {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 400},  // 5 = bassline
       {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=0, .default_volume=255, .pulsewidth = 400},  // 6 is used for pacman death sound effect
-      {.waveform_select = WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=0, .default_volume=255,.pulsewidth = 400}  // 7 is used for eat-pill effect
+      {.waveform_select = WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=0, .default_volume=255,.pulsewidth = 400},  // 7 is used for eat-pill effect
+      {.waveform_select = WAVE_SAWTOOTH, .envelope = &envelope1, .envelope_enable=0, .default_volume=128,.pulsewidth = 2048}  // 8 is used for waka-waka noise
   },
   .bars = {
     { .notes = {
@@ -290,7 +291,26 @@ const struct song_t song_pacman = {
       }
     },
 
-
+    // bar 10 = waka waka
+    { .notes = {
+        { .n = {.n=72,.i=8,.e=2,.p=4 }},  // Start @ B5, slide down
+        { .n = {.n= 0,.i=0,.e=12,.p=0 }},  // volume off
+        { .n = {.n=56,.i=8,.e=1,.p=4 }},  // start @ G4 and slide up
+        { .n = {.n= 0,.i=0,.e=12,.p=0 }}, // set volume to zero to end effect
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},  // keep sliding down
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},  // keep sliding up
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }}
+      }
+    },
   },
   .patterns = {
     { .bar = { 1,4,0,0 } },
