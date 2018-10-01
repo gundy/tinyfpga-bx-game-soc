@@ -227,6 +227,7 @@ picosoc #(
 	.ENABLE_COUNTERS(0),
 	.ENABLE_IRQ_QREGS(1),
 	.ENABLE_TWO_STAGE_SHIFT(0),
+  .ENABLE_REGS_DUALPORT(0),
 	.PROGADDR_RESET(32'h0005_0000), // beginning of user space in SPI flash
 	.PROGADDR_IRQ(32'h0005_0010),
 	.MEM_WORDS(1024),                // use 4KBytes of block RAM by default (8 RAMS)

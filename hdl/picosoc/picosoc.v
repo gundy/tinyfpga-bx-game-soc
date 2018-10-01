@@ -68,6 +68,7 @@ module picosoc (
 	parameter [0:0] ENABLE_IRQ_QREGS = 0;
 	parameter [0:0] ENABLE_IRQ = 1;
 	parameter [0:0] ENABLE_TWO_STAGE_SHIFT = 1;
+	parameter [0:0] ENABLE_REGS_DUALPORT = 1;
 
 	parameter integer MEM_WORDS = 256;
 	parameter [31:0] STACKADDR = (4*MEM_WORDS);       // end of memory
@@ -134,7 +135,8 @@ module picosoc (
 		.ENABLE_DIV(ENABLE_MULDIV),
 		.ENABLE_IRQ(ENABLE_IRQ),
 		.ENABLE_IRQ_QREGS(ENABLE_IRQ_QREGS),
-		.TWO_STAGE_SHIFT(ENABLE_TWO_STAGE_SHIFT)
+		.TWO_STAGE_SHIFT(ENABLE_TWO_STAGE_SHIFT),
+		.ENABLE_REGS_DUALPORT(ENABLE_REGS_DUALPORT)
 	) cpu (
 		.clk         (clk        ),
 		.resetn      (resetn     ),
@@ -218,17 +220,21 @@ module picosoc_regs (
 	input [5:0] raddr1,
 	input [5:0] raddr2,
 	input [31:0] wdata,
-	output [31:0] rdata1,
-	output [31:0] rdata2
+	output reg [31:0] rdata1,
+	output reg [31:0] rdata2
 );
-//	reg [31:0] regs [0:31];
-	reg [31:0] regs [0:63];
+	reg [31:0] regs [0:35];
 
-	always @(posedge clk)
-		if (wen) regs[waddr[5:0]] <= wdata;
+	always @(posedge clk) begin
+		if (wen) begin
+			regs[waddr[5:0]] <= wdata;
+		end
+		rdata1 <= regs[raddr1[5:0]];
+		rdata2 <= 32'h0000_0000;
+	end
 
-	assign rdata1 = regs[raddr1[5:0]];
-	assign rdata2 = regs[raddr2[5:0]];
+	// assign rdata1 = regs[raddr1[5:0]];
+	// assign rdata2 = regs[raddr2[5:0]];
 endmodule
 
 module picosoc_mem #(
