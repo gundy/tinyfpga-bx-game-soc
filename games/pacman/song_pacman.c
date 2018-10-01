@@ -46,6 +46,7 @@ const struct envelope_t envelope3 = {
 
 //      5  73  74  75  76  77  78   79  80   81   82   83  84
 //      6  85  86  87  88  89  90   91  92   93   94   95  96
+//      7  97  98  99  100
 
 
 
@@ -62,7 +63,9 @@ const struct song_t song_pacman = {
       {.waveform_select = WAVE_NONE, .envelope = &envelope3, .envelope_enable=1, .pulsewidth = 2048},  // 4 = snare
 
       // first user defined instrument here:
-      {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 400}  // 5 = bassline
+      {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=1, .pulsewidth = 400},  // 5 = bassline
+      {.waveform_select = WAVE_SAWTOOTH|WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=0, .default_volume=255, .pulsewidth = 400},  // 6 is used for pacman death sound effect
+      {.waveform_select = WAVE_TRIANGLE, .envelope = &envelope1, .envelope_enable=0, .default_volume=255,.pulsewidth = 400}  // 7 is used for eat-pill effect
   },
   .bars = {
     { .notes = {
@@ -231,7 +234,62 @@ const struct song_t song_pacman = {
         { .n = {.n= 0,.i=0 }},
         { .n = {.n= 0,.i=0 }}
       }
-    }
+    },
+
+
+    // octave   C  C#   D  D#   E   F   F#   G   G#    A   A#   B
+    //     -1   1   2   3   4   5   6    7   8    9   10   11  12
+    //      0  13  14  15  16  17  18   19  20   21   22   23  24
+    //      1  25  26  27  28  29  30   31  32   33   34   35  36
+    //      2  37  38  39  40  41  42   43  44   45   46   47  48
+    //      3  49  50  51  52  53  54   55  56   57   58   59  60
+    //      4  61  62  63  64  65  66   67  68   69   70   71  72
+    //      5  73  74  75  76  77  78   79  80   81   82   83  84
+    //      6  85  86  87  88  89  90   91  92   93   94   95  96
+    //      7  97  98  99  100
+
+    // bar 8 = pacman death sound effect
+    { .notes = {
+        { .n = {.n=80,.i=6,.e=2,.p=1 }}, // G5, slide down
+        { .n = {.n= 0,.i=0,.e=1,.p=1 }}, // slide back up
+        { .n = {.n=78,.i=6,.e=2,.p=1 }}, // F5, slide down
+        { .n = {.n= 0,.i=0,.e=1,.p=1 }}, // slide back up
+        { .n = {.n=77,.i=6,.e=2,.p=1 }}, // E5, slide down
+        { .n = {.n= 0,.i=0,.e=1,.p=1 }}, // slide back up
+        { .n = {.n=75,.i=6,.e=2,.p=1 }}, // D5, slide down
+        { .n = {.n= 0,.i=0,.e=1,.p=1 }}, // slide back up
+        { .n = {.n=73,.i=6,.e=2,.p=1 }}, // C5, slide down
+        { .n = {.n= 0,.i=0,.e=1,.p=1 }}, // slide back up
+        { .n = {.n=72,.i=6,.e=2,.p=1 }}, // B5, slide down .. but .. break this one off early so there's room to cut the volume at the last row
+        { .n = {.n=56,.i=6,.e=1,.p=5 }}, // start at G3, slide up 5 semitones at a time; "whup whup" at the end.
+        { .n = {.n= 0,.i=0,.e=1,.p=5 }}, // .. keep sliding up
+        { .n = {.n=56,.i=6,.e=1,.p=5 }}, // reset back to G3 ^^^^^
+        { .n = {.n= 0,.i=0,.e=1,.p=5 }},  // ^^^^^^^^^^^^^^
+        { .n = {.n= 0,.i=0,.e=12,.p=0 }} // set volume to zero to end effect
+      }
+    },
+
+    // bar 9 = eat pill sound effect
+    { .notes = {
+        { .n = {.n=80,.i=7,.e=2,.p=4 }},  // G5, slide down
+        { .n = {.n= 0,.i=0,.e=2,.p=4 }},  // keep sliding down
+        { .n = {.n= 0,.i=0,.e=1,.p=4 }},  // slide back up
+        { .n = {.n= 0,.i=0,.e=1,.p=4 }},  // keep sliding back up
+        { .n = {.n= 0,.i=0,.e=12,.p=0 }}, // set volume to zero to end effect
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }},
+        { .n = {.n= 0,.i=0,.e=0,.p=0 }}
+      }
+    },
+
 
   },
   .patterns = {

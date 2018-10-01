@@ -8,9 +8,12 @@ struct globalctrl_t globalctrl = {
   .song_row = -1,
   .song_pos = 0,
   .ticks_per_div = 6,
-  .tick_div_count = 0
+  .tick_div_count = 0,
+  .sound_fx_row = 16,
+  .sound_fx_bar = 0,
+  .active = 0
 };
-struct channelctrl_t channelctrl[3] = {
+struct channelctrl_t channelctrl[4] = {
   {.note.raw = 0, .note_on_time = 0 },
   {.note.raw = 0, .note_on_time = 0 },
   {.note.raw = 0, .note_on_time = 0 }
@@ -38,16 +41,34 @@ void songplayer_init(const struct song_t* song) {
   // reset song player to initial position
   globalctrl.song_pos = 0;
   globalctrl.song_row = -1;
+  globalctrl.next_pos_override = -1;
   globalctrl.ticks_per_div = song->ticks_per_div;
 
   globalctrl.tick_div_count = globalctrl.ticks_per_div;
-
+  globalctrl.active = 1;
   player_song = song;
   for (int chan = 0; chan < 3; chan++) {
     channelctrl[chan].note.raw = 0;
     channelctrl[chan].note_on_time = 0;
   }
 }
+
+void songplayer_stop() {
+    globalctrl.active = 0;
+}
+
+void songplayer_start(int pos) {
+  globalctrl.song_pos = pos;
+  globalctrl.song_row = -1;
+  globalctrl.next_pos_override = -1;
+  globalctrl.active = 1;
+}
+
+void songplayer_trigger_effect(uint32_t bar_num) {
+  globalctrl.sound_fx_bar = bar_num;
+  globalctrl.sound_fx_row = 0;
+}
+
 
 
 void handle_percussion_div(int chan, int instrument) {
@@ -74,58 +95,118 @@ void handle_percussion_div(int chan, int instrument) {
   }
 }
 
+void handle_effect_div(int chan, struct songnote_expanded_t *incoming_note) {
+  struct songnote_expanded_t *note = &channelctrl[chan].note.note;
+  switch(note->effect) {
+    case 0x01: /* slide up */
+        note->new_note = note->new_note + note->effect_parameter;
+        if (!incoming_note->new_note) {
+        reg_audio[chan*4+REG_FREQ] = note_to_freq[note->new_note];
+      }
+      break;
+    case 0x02: /* slide down */
+      if (!incoming_note->new_note) {
+        note->new_note = note->new_note - note->effect_parameter;
+        reg_audio[chan*4+REG_FREQ] = note_to_freq[note->new_note];
+      }
+      break;
+    case 0x0c: /* set volume */
+      channelctrl[chan].volume = channelctrl[chan].note.note.effect_parameter;
+      reg_audio[chan*4+REG_VOLUME] = channelctrl[chan].volume;
+      break;
+    case 0x0b: /* position jump - jump to new pattern */
+      globalctrl.next_pos_override = note->effect_parameter;
+  }
+}
+
+void handle_effect_tick(int chan) {
+  struct songnote_expanded_t *note = &channelctrl[chan].note.note;
+  switch(note->effect) {
+    case 0x01: /* slide up */
+      note->new_note = note->new_note + note->effect_parameter;
+      reg_audio[chan*4+REG_FREQ] = note_to_freq[note->new_note];
+      break;
+    case 0x02: /* slide down */
+      note->new_note = note->new_note - note->effect_parameter;
+      reg_audio[chan*4+REG_FREQ] = note_to_freq[note->new_note];
+      break;
+    case 0x0c: /* set volume */
+      channelctrl[chan].volume = channelctrl[chan].note.note.effect_parameter;
+      reg_audio[chan*4+REG_VOLUME] = channelctrl[chan].volume;
+      break;
+    default: break;
+  }
+}
+
+void play_note_on_channel(int chan, struct songnote_expanded_t note) {
+  channelctrl[chan].note.note.effect = note.effect;
+  channelctrl[chan].note.note.effect_parameter = note.effect_parameter;
+
+  // "disable" voice if we have a new note
+  if (note.new_note != 0) {
+    channelctrl[chan].note.note.new_note = note.new_note;
+//            reg_audio[chan*4+REG_VOLUME]=0;
+  }
+  // switch out instrument waveform parameters for new voice
+  if (note.instrument != 0) {
+    channelctrl[chan].note.note.instrument = note.instrument;
+
+    // set channel parameters based on instrument
+    if (note.instrument >= FIRST_USER_INSTRUMENT) {
+      struct song_instrument_t instrument = player_song->instruments[note.instrument];
+      reg_audio[chan*4+REG_WAVESELECT]=
+              (0x08<<24) /* enable voice */
+              +(instrument.waveform_select<<16);
+      reg_audio[chan*4+REG_PULSEWIDTH]=instrument.pulsewidth;
+    }
+  }
+  // handle new note
+  if (note.new_note != 0) {
+    channelctrl[chan].note_on_time = 0;
+
+    // set frequency of note
+    reg_audio[chan*4+REG_FREQ] = note_to_freq[note.new_note];
+
+    handle_percussion_div(chan, channelctrl[chan].note.note.instrument);
+
+    struct song_instrument_t instrument = player_song->instruments[note.instrument];
+    if (instrument.envelope_enable) {
+      channelctrl[chan].volume = instrument.envelope->points[0];
+    } else {
+      channelctrl[chan].volume = instrument.default_volume;
+    }
+    reg_audio[chan*4+REG_VOLUME] = channelctrl[chan].volume;
+
+  }
+  // handle effects
+  handle_effect_div(chan, &note);
+
+}
+
+
 
   void divhandler() {
 
         int song_pattern = player_song->pattern_map[globalctrl.song_pos];
 
         // read in new note data
-        for (int chan = 0; chan < 3; chan++) {
-          int current_bar_num = player_song->patterns[song_pattern].bar[chan];
-          struct songnote_expanded_t note = player_song->bars[current_bar_num].notes[globalctrl.song_row].note;
+        if (globalctrl.active) {
+          for (int chan = 0; chan < 3; chan++) {
+            int current_bar_num = player_song->patterns[song_pattern].bar[chan];
+            struct songnote_expanded_t note = player_song->bars[current_bar_num].notes[globalctrl.song_row].note;
 
-          channelctrl[chan].note.note.effect = note.effect;
-          channelctrl[chan].note.note.effect_parameter = note.effect_parameter;
-
-          // "disable" voice if we have a new note
-          if (note.new_note != 0) {
-            channelctrl[chan].note.note.new_note = note.new_note;
-//            reg_audio[chan*4+REG_VOLUME]=0;
-          }
-          // switch out instrument waveform parameters for new voice
-          if (note.instrument != 0) {
-            channelctrl[chan].note.note.instrument = note.instrument;
-
-            // set channel parameters based on instrument
-            if (note.instrument >= FIRST_USER_INSTRUMENT) {
-              struct song_instrument_t instrument = player_song->instruments[note.instrument];
-              reg_audio[chan*4+REG_WAVESELECT]=
-                      (0x08<<24) /* enable voice */
-                      +(instrument.waveform_select<<16);
-              reg_audio[chan*4+REG_PULSEWIDTH]=instrument.pulsewidth;
-            }
-          }
-          // handle new note
-          if (note.new_note != 0) {
-            channelctrl[chan].note_on_time = 0;
-
-            // set frequency of note
-            reg_audio[chan*4+REG_FREQ] = note_to_freq[note.new_note];
-
-            handle_percussion_div(chan, channelctrl[chan].note.note.instrument);
-
-            struct song_instrument_t instrument = player_song->instruments[note.instrument];
-            if (instrument.envelope_enable) {
-              channelctrl[chan].volume = instrument.envelope->points[0];
-            } else {
-              channelctrl[chan].volume = instrument.default_volume;
-            }
-            reg_audio[chan*4+REG_VOLUME] = channelctrl[chan].volume;
-
+            play_note_on_channel(chan, note);
           }
 
         }
+        // deal with "sound fx" channel
+        if (globalctrl.sound_fx_row < 16) {
+          struct songnote_expanded_t note = player_song->bars[globalctrl.sound_fx_bar].notes[globalctrl.sound_fx_row].note;
+          play_note_on_channel(3, note);
+          globalctrl.sound_fx_row++;
+        }
   }
+
 
   void handle_percussion_tick(int chan, int instrument) {
     switch (instrument) {
@@ -140,7 +221,7 @@ void handle_percussion_div(int chan, int instrument) {
   }
 
   void tickhandler() {
-    for (int chan = 0; chan <= 2; chan++) {
+    for (int chan = 0; chan < 4; chan++) {
 
       struct songnote_expanded_t note = channelctrl[chan].note.note;
       struct song_instrument_t instrument = player_song->instruments[note.instrument];
@@ -157,8 +238,7 @@ void handle_percussion_div(int chan, int instrument) {
       reg_audio[chan*4+REG_VOLUME] = channelctrl[chan].volume;
 
       handle_percussion_tick(chan, channelctrl[chan].note.note.instrument);
-
-      // TODO process effects and parameters
+      handle_effect_tick(chan);
   }
 }
 
@@ -170,6 +250,7 @@ void songplayer_tick() {
     tickhandler();
   } else {  /* advance song position and process new notes */
     globalctrl.tick_div_count = 0;
+
     globalctrl.song_row++;
     if (globalctrl.song_row >= player_song->rows_per_bar) {
       globalctrl.song_row = 0;
@@ -178,6 +259,13 @@ void songplayer_tick() {
         globalctrl.song_pos = 0;
       }
     }
+
+    if (globalctrl.next_pos_override != -1) {
+      globalctrl.song_pos = globalctrl.song_pos;
+      globalctrl.song_row = 0;
+    }
+
     divhandler();
+
   }
 }

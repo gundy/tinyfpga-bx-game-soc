@@ -28,11 +28,15 @@ struct song_instrument_t {
 };
 
 struct globalctrl_t {
+  int32_t active;
   int32_t ticks_per_div;
 
+  int32_t next_pos_override; /* override for next song position */
   int32_t song_pos;
   int32_t song_row;
   int32_t tick_div_count;
+  int32_t sound_fx_bar;
+  int32_t sound_fx_row;
 };
 
 struct songnote_expanded_t {
@@ -76,7 +80,7 @@ struct song_t {
   int32_t rows_per_bar;
   int32_t song_length;
   int32_t ticks_per_div;
-  
+
   struct song_instrument_t instruments[16];
   int32_t pattern_map[256];
   struct song_bar_t bars[256];
@@ -105,7 +109,19 @@ struct song_t {
 // - global filter controls
 // - set ticks per div
 
+// call to load a new song into memory
 void songplayer_init(const struct song_t *song);
+
+// call to start playing the song (from the given position)
+void songplayer_start(int pos);
+
+// call to stop playing the song
+void songplayer_stop();
+
+// this needs to be called @ 50Hz
 void songplayer_tick();
+
+// call this to trigger a "sound effect" from the given song bar (this is played on channel 4).
+void songplayer_trigger_effect(uint32_t bar_num);
 
 #endif
