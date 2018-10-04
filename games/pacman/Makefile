@@ -13,6 +13,7 @@ VERILOG_FILES = \
 	$(HDL_DIR)/picosoc/video/sprite_memory.v \
 	$(HDL_DIR)/picosoc/video/texture_memory.v \
 	$(HDL_DIR)/picosoc/video/tile_memory.v \
+	$(HDL_DIR)/picosoc/video/tile_colour_memory.v \
 	$(HDL_DIR)/picosoc/video/sprite.v \
 	$(HDL_DIR)/picosoc/video/VGASyncGen.v \
 	$(HDL_DIR)/picosoc/video/video_vga.v \
