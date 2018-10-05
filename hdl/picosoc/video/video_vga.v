@@ -2,8 +2,6 @@
  * Video peripheral for TinyFPGA game SoC
  *
  * 320x240 tile map based graphics adaptor
- *  texture memory mapped to 0x0510_0000
- *  tile memory mapped to 0x0520_0000
  */
 
 module video_vga
@@ -64,7 +62,13 @@ module video_vga
   wire [9:0] effective_next_x = next_xpos+xofs;
 
   // need to read ahead with tile memory to prevent edge-artifacts
-  wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
+  // y/8, x/8 (8 pixels per tile)
+  wire [5:0] y_over_eight = effective_y[8:3];  // y / 8 ()
+
+  // (y/8)*40 + x      ((y/8)*32) + ((y/8)*8) + x
+  wire [11:0] tile_read_address = (y_over_eight << 5) + (y_over_eight << 3) + effective_next_x[8:3];
+
+  // wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
   tile_memory tilemem(
     .clk(clk),
     .ren(video_active), .raddr(tile_read_address), .rdata(tile_read_data),
