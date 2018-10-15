@@ -43,7 +43,7 @@ set_io -nowarn SER_RX A1      # PIN 2
 
 # Audio
 set_io -nowarn AUDIO_LEFT B1   # PIN 3
-set_io -nowarn AUDIO_RIGHT B8  # PIN 19
+#set_io -nowarn AUDIO_RIGHT B8  # PIN 19
 
 # I2C for Nunchuk
 set_io -nowarn I2C_SDA C2      # PIN 4
@@ -53,27 +53,47 @@ set_io -nowarn I2C_SCL C1      # PIN 5
 set_io -nowarn BUTTONS[7] D2   # PIN 6
 set_io -nowarn BUTTONS[6] D1   # PIN 7
 set_io -nowarn BUTTONS[5] E2   # PIN 8
-set_io -nowarn BUTTONS[4] A6   # PIN 24
-set_io -nowarn BUTTONS[3] B6   # PIN 23
-set_io -nowarn BUTTONS[2] A7   # PIN 22
-set_io -nowarn BUTTONS[1] B7   # PIN 21
-set_io -nowarn BUTTONS[0] A8   # PIN 20
+#set_io -nowarn BUTTONS[4] A6   # PIN 24
+#set_io -nowarn BUTTONS[3] B6   # PIN 23
+#set_io -nowarn BUTTONS[2] A7   # PIN 22
+#set_io -nowarn BUTTONS[1] B7   # PIN 21
+#set_io -nowarn BUTTONS[0] A8   # PIN 20
+#set_io -nowarn AUDIO_RIGHT B8  # PIN 19
 
 # OLED SPI
-set_io -nowarn OLED_SPI_CS H9  # PIN 14
-set_io -nowarn OLED_SPI_DC D9  # PIN 15
-set_io -nowarn OLED_SPI_RES D8 # PIN 16
-set_io -nowarn OLED_SPI_SDA C9 # PIN 17
-set_io -nowarn OLED_SPI_SCL A9 # PIN 18
+#set_io -nowarn OLED_SPI_CS H9  # PIN 14
+#set_io -nowarn OLED_SPI_DC D9  # PIN 15
+#set_io -nowarn OLED_SPI_RES D8 # PIN 16
+#set_io -nowarn OLED_SPI_SDA C9 # PIN 17
+#set_io -nowarn OLED_SPI_SCL A9 # PIN 18
+
+# re-arranging VGA pins to be as close as possible to each other on floorplan
+set_io -nowarn VGA_VSYNC A6   # PIN 24
+set_io -nowarn VGA_HSYNC B6   # PIN 23
+set_io -nowarn VGA_R2    A7   # PIN 22
+set_io -nowarn VGA_R1    B7   # PIN 21
+set_io -nowarn VGA_R0    A8   # PIN 20
+set_io -nowarn VGA_G2    B8   # PIN 19
+set_io -nowarn VGA_G1    A9   # PIN 18
+set_io -nowarn VGA_G0    C9   # PIN 17
+set_io -nowarn VGA_B1    D8   # PIN 16
+set_io -nowarn VGA_B0    D9   # PIN 15
+
+
+# VGA extra pins
+#set_io -nowarn VGA_R1 H9  # PIN 14
+#set_io -nowarn VGA_G1 D8 # PIN 16
+#set_io -nowarn VGA_G0 C9 # PIN 17
+
 
 # VGA
-set_io -nowarn VGA_VSYNC H2    # PIN 13
-set_io -nowarn VGA_HSYNC J1    # PIN 12
-set_io -nowarn VGA_R H1        # PIN 11
-set_io -nowarn VGA_G G2        # PIN 10
-set_io -nowarn VGA_B E1        # PIN 9
+set_io -nowarn BUTTONS[4] H2    # PIN 13
+set_io -nowarn BUTTONS[3] J1    # PIN 12
+set_io -nowarn BUTTONS[2] H1        # PIN 11
+set_io -nowarn BUTTONS[1] G2        # PIN 10
+set_io -nowarn BUTTONS[0] E1        # PIN 9
 
-set_io -nowarn pin_24 A6
+# set_io -nowarn pin_24 A6
 
 # SPI flash interface on bottom of board
 set_io -nowarn SPI_SS F7

@@ -12,7 +12,6 @@
 .global init
 
 reset_vec:
-	picorv32_maskirq_insn(zero, zero)
 	// no more than 8 bytes here !
 	j start
 
@@ -146,30 +145,31 @@ cleanup:
  **********************************/
 
 start:
-	# zero initialize entire scratchpad memory
+	// zero initialize entire scratchpad memory
 	li a0, 0x00000000
 	li a1, 0x00001000
+	addi t0, zero, 0
 setmemloop:
-	sw a0, 0(a0)
+	sw t0, 0(a0)
 	addi a0, a0, 4
 	blt a0, a1, setmemloop
 
-	# copy data section
+	// copy data section  (_sidata -> _sdata .. _edata)
 	la a0, _sidata
 	la a1, _sdata
 	la a2, _edata
 	bge a1, a2, end_init_data
 loop_init_data:
-	lw a3, 0(a0)
-	sw a3, 0(a1)
+	lw t0, 0(a0)
+	sw t0, 0(a1)
 	addi a0, a0, 4
 	addi a1, a1, 4
 	blt a1, a2, loop_init_data
 end_init_data:
 
-	# zero-initialize register file
+	// zero-initialize register file
 	addi x1, zero, 0
-	# x2 (sp) is initialized by reset
+	// x2 (sp) is initialized by reset
 	addi x3, zero, 0
 	addi x4, zero, 0
 	addi x5, zero, 0
@@ -202,7 +202,9 @@ end_init_data:
 
 	lui sp, %hi(0x400);
 	addi sp, sp, %lo(0x400);
-	# call main
+
+	picorv32_maskirq_insn(zero, zero)
+
 	call main
 loop:
 	j loop

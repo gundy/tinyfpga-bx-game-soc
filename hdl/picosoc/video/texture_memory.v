@@ -2,7 +2,7 @@
 // 3 BRAMS
 module texture_memory (
     input clk, wen, ren,
-    input [11:0] waddr, raddr,
+    input [13:0] waddr, raddr,
     input [1:0] wdata,
     output reg [1:0] rdata
 );

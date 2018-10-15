@@ -14,9 +14,7 @@ module video_vga
 	input [31:0] iomem_wdata,
   output vga_hsync,
   output vga_vsync,
-  output vga_r,
-  output vga_g,
-  output vga_b);
+  output [7:0] vga_rgb);
 
   reg[9:0] xpos;
   reg[9:0] ypos;
@@ -36,7 +34,7 @@ module video_vga
 
 	reg [31:0] config_register_bank [0:2+NUM_SPRITES-1];  /* x/y pos + sprite config */
   reg [7:0] palette [0:15];
-  reg [31:0] sub_palette[0:15];  // 4-colours per sub-palette entry
+  reg [15:0] sub_palette[0:15];  // 4-colours per sub-palette entry; each colour index 0-15
 
   wire [3:0] bank_addr = iomem_addr[5:2];
 
@@ -46,6 +44,7 @@ module video_vga
   wire reg_write = (iomem_addr[23:20]==4'h0);
   wire texmem_write = (iomem_valid && iomem_wstrb[0] && iomem_addr[23:20]==4'h1);
   wire tilemem_write = (iomem_valid && iomem_wstrb[0] && iomem_addr[23:20]==4'h2);
+  wire colourmem_write = (iomem_valid && iomem_wstrb[1] && iomem_addr[23:20]==4'h2);
   wire spritemem_write = (iomem_valid && iomem_wstrb[0] && iomem_addr[23:20]==4'h3);
   wire palette_write = (iomem_valid && iomem_addr[23:20]==4'h4);
   wire sub_palette_write = (iomem_valid && iomem_addr[23:20]==4'h5);
@@ -54,21 +53,25 @@ module video_vga
   wire [3:0] tile_palette_select_read_data;
   wire [1:0] texture_read_data;
 
-  wire [9:0] xofs = config_register_bank[0][8:0];
-  wire [9:0] yofs = config_register_bank[1][8:0];
+  wire [8:0] xofs = config_register_bank[0][8:0];
+  wire [7:0] yofs = config_register_bank[1][7:0];
 
-  wire [9:0] effective_y = half_ypos+yofs;
-  wire [9:0] effective_x = half_xpos+xofs;
-  wire [9:0] effective_next_x = next_xpos+xofs;
+  wire [8:0] effective_y = half_ypos+yofs;
+  wire [8:0] effective_x = half_xpos+xofs;
+  wire [8:0] effective_next_x = next_xpos+xofs;
 
-  // need to read ahead with tile memory to prevent edge-artifacts
-  // y/8, x/8 (8 pixels per tile)
-  wire [5:0] y_over_eight = effective_y[8:3];  // y / 8 ()
+  // The below is for a 40x25 tile map
+  //  --- need to read ahead with tile memory to prevent edge-artifacts
+  //  --- y/8, x/8 (8 pixels per tile)
+  // wire [5:0] y_over_eight = effective_y[8:3];  // y / 8 ()
+  //  --- (y/8)*40 + x      ((y/8)*32) + ((y/8)*8) + x
+  // wire [11:0] tile_read_address = (y_over_eight << 5) + (y_over_eight << 3) + effective_next_x[8:3];
 
-  // (y/8)*40 + x      ((y/8)*32) + ((y/8)*8) + x
-  wire [11:0] tile_read_address = (y_over_eight << 5) + (y_over_eight << 3) + effective_next_x[8:3];
+  // the below is for an 64x32 tile map
+  //  [ y y y y y y x x x x x x ]
+  // - eg. y*64+x
+  wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
 
-  // wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
   tile_memory tilemem(
     .clk(clk),
     .ren(video_active), .raddr(tile_read_address), .rdata(tile_read_data),
@@ -80,26 +83,27 @@ module video_vga
     .ren(video_active),
     .raddr(tile_read_address),
     .rdata(tile_palette_select_read_data),
-    .wen(tilemem_write),
+    .wen(colourmem_write),
     .waddr(iomem_addr[13:2]),
     .wdata(iomem_wdata[11:8])
   );
 
-  wire [11:0] texture_read_address = { tile_read_data[5:0], effective_y[2:0], effective_x[2:0] };
+  wire [13:0] texture_read_address = { tile_read_data[7:0], effective_y[2:0], effective_x[2:0] };
   texture_memory texturemem(
     .clk(clk),
     .ren(video_active), .raddr(texture_read_address), .rdata(texture_read_data),
-    .wen(texmem_write), .waddr(iomem_addr[13:2]), .wdata(iomem_wdata[1:0])
+    .wen(texmem_write), .waddr(iomem_addr[15:2]), .wdata(iomem_wdata[1:0])
   );
 
-  wire [31:0] tile_palette = sub_palette[tile_palette_select_read_data];
-  wire [7:0] texture_colour = (texture_read_data == 2'b00) ? tile_palette[7:0]
-                            : (texture_read_data == 2'b01) ? tile_palette[15:8]
-                            : (texture_read_data == 2'b10) ? tile_palette[23:16]
-                            : tile_palette[31:24];
+  wire [15:0] tile_palette = sub_palette[tile_palette_select_read_data];
+  wire [7:0] texture_colour_index = (texture_read_data == 2'b00) ? tile_palette[3:0]
+                            : (texture_read_data == 2'b01) ? tile_palette[7:4]
+                            : (texture_read_data == 2'b10) ? tile_palette[11:8]
+                            : tile_palette[15:12];
+  wire[7:0] texture_colour = palette[texture_colour_index];
 
   wire[NUM_SPRITES-1:0] inbb;
-  wire[13:0] sprite_mem_addr[0:NUM_SPRITES-1];
+  wire[12:0] sprite_mem_addr[0:NUM_SPRITES-1];
 
   generate
     genvar i;
@@ -114,51 +118,50 @@ module video_vga
     end
   endgenerate
 
-  wire [13:0] sprite_read_address = inbb[0]?sprite_mem_addr[0][13:0]:
-                                  inbb[1]?sprite_mem_addr[1][13:0]:
-                                  inbb[2]?sprite_mem_addr[2][13:0]:
-                                  inbb[3]?sprite_mem_addr[3][13:0]:
-                                  inbb[4]?sprite_mem_addr[4][13:0]:
-                                  inbb[5]?sprite_mem_addr[5][13:0]:
-                                  inbb[6]?sprite_mem_addr[6][13:0]:
-                                  inbb[7]?sprite_mem_addr[7][13:0]:
+  wire [12:0] sprite_read_address = inbb[0]?sprite_mem_addr[0][12:0]:
+                                  inbb[1]?sprite_mem_addr[1][12:0]:
+                                  inbb[2]?sprite_mem_addr[2][12:0]:
+                                  inbb[3]?sprite_mem_addr[3][12:0]:
+                                  inbb[4]?sprite_mem_addr[4][12:0]:
+                                  inbb[5]?sprite_mem_addr[5][12:0]:
+                                  inbb[6]?sprite_mem_addr[6][12:0]:
+                                  inbb[7]?sprite_mem_addr[7][12:0]:
                                   14'h0;
 
   // RRRGGGBB colour value for sprite
-  wire[31:0] sprite_palette = (
-                    inbb[0]?sub_palette[config_register_bank[2][27:26]]    // palette needs another layer of indirection;
-                    :inbb[1]?sub_palette[config_register_bank[3][27:26]]
-                    :inbb[2]?sub_palette[config_register_bank[4][27:26]]
-                    :inbb[3]?sub_palette[config_register_bank[5][27:26]]
-                    :inbb[4]?sub_palette[config_register_bank[6][27:26]]
-                    :inbb[5]?sub_palette[config_register_bank[7][27:26]]
-                    :inbb[6]?sub_palette[config_register_bank[8][27:26]]
-                    :inbb[7]?sub_palette[config_register_bank[9][27:26]]
+  wire[15:0] sprite_sub_palette = (
+                    inbb[0]?sub_palette[config_register_bank[2][27:24]]   // palette needs another layer of indirection;
+                    :inbb[1]?sub_palette[config_register_bank[3][27:24]]
+                    :inbb[2]?sub_palette[config_register_bank[4][27:24]]
+                    :inbb[3]?sub_palette[config_register_bank[5][27:24]]
+                    :inbb[4]?sub_palette[config_register_bank[6][27:24]]
+                    :inbb[5]?sub_palette[config_register_bank[7][27:24]]
+                    :inbb[6]?sub_palette[config_register_bank[8][27:24]]
+                    :inbb[7]?sub_palette[config_register_bank[9][27:24]]
                     :7'b0
                   );
 
-  wire sprite_pixel_visible = |(sprite_colour);
+
   wire [1:0] sprite_read_data;
 
   sprite_memory spritemem(
     .clk(clk),
     .ren(video_active), .raddr(sprite_read_address), .rdata(sprite_read_data),
-    .wen(spritemem_write), .waddr(iomem_addr[15:2]), .wdata(iomem_wdata[1:0])
+    .wen(spritemem_write), .waddr(iomem_addr[14:2]), .wdata(iomem_wdata[1:0])
   );
 
-  wire[7:0] sprite_colour = (sprite_read_data == 2'b00) ? sprite_palette[7:0]
-                          : (sprite_read_data == 2'b01) ? sprite_palette[15:8]
-                          : (sprite_read_data == 2'b10) ? sprite_palette[23:16]
-                          : sprite_palette[31:24];
+  wire[3:0] sprite_colour_idx = (sprite_read_data == 2'b00) ? sprite_sub_palette[3:0]
+                          : (sprite_read_data == 2'b01) ? sprite_sub_palette[7:4]
+                          : (sprite_read_data == 2'b10) ? sprite_sub_palette[11:8]
+                          : sprite_sub_palette[15:12];
 
+  wire sprite_pixel_visible = !(sprite_colour_idx == 2'b00);
 
-  wire[7:0] pixel_out = (!video_active) ? 7'b0
+  wire[7:0] sprite_colour = palette[sprite_colour_idx];
+
+  assign vga_rgb = (!video_active) ? 8'b0
                       : sprite_pixel_visible ? sprite_colour
                       : texture_colour;
-
-  assign vga_r = pixel_out[7];
-  assign vga_g = pixel_out[4];
-  assign vga_b = pixel_out[1];
 
 	always @(posedge clk) begin
 		if (iomem_valid) begin
@@ -168,15 +171,12 @@ module video_vga
   			if (iomem_wstrb[2]) config_register_bank[bank_addr][23:16] <= iomem_wdata[23:16];
   			if (iomem_wstrb[3]) config_register_bank[bank_addr][31:24] <= iomem_wdata[31:24];
       end else if (palette_write) begin
-        if (iomem_wstrb[0]) palette[{bank_addr,2'd0}] <= iomem_wdata[ 7: 0];
-        if (iomem_wstrb[1]) palette[{bank_addr,2'd1}] <= iomem_wdata[15: 8];
-        if (iomem_wstrb[2]) palette[{bank_addr,2'd2}] <= iomem_wdata[23:16];
-        if (iomem_wstrb[3]) palette[{bank_addr,2'd3}] <= iomem_wdata[31:24];
+        if (iomem_wstrb[0]) palette[bank_addr] <= iomem_wdata[ 7: 0];
       end else if (sub_palette_write) begin
         if (iomem_wstrb[0]) sub_palette[bank_addr][7:0] <= iomem_wdata[ 7: 0];
         if (iomem_wstrb[1]) sub_palette[bank_addr][15:8] <= iomem_wdata[15: 8];
-        if (iomem_wstrb[2]) sub_palette[bank_addr][23:16] <= iomem_wdata[23:16];
-        if (iomem_wstrb[3]) sub_palette[bank_addr][31:24] <= iomem_wdata[31:24];
+        // if (iomem_wstrb[2]) sub_palette[bank_addr][23:16] <= iomem_wdata[23:16];
+        // if (iomem_wstrb[3]) sub_palette[bank_addr][31:24] <= iomem_wdata[31:24];
       end
 		end
     if (!resetn) begin

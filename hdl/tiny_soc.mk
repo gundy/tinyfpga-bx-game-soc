@@ -5,13 +5,13 @@ hardware.blif: $(VERILOG_FILES)
 	yosys -f "verilog $(DEFINES)" -ql hardware.log -p 'synth_ice40 -top top -blif hardware.blif' $^
 
 hardware.asc: $(PCF_FILE) hardware.blif
-	arachne-pnr -d 8k -P cm81 -m 400 -o hardware.asc -p $(PCF_FILE) hardware.blif
+	arachne-pnr -r -d 8k -P cm81 -m 400 -o hardware.asc -p $(PCF_FILE) hardware.blif
 
 hardware.bin: hardware.asc
 	icetime -d hx8k -c 12 -mtr hardware.rpt hardware.asc
 	icepack hardware.asc hardware.bin
 
-firmware.elf: $(C_FILES)
+firmware.elf: $(C_FILES) $(START_FILE)
 	/opt/riscv32i/bin/riscv32-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostartfiles -Wl,-Bstatic,-T,$(LDS_FILE),--strip-debug,-Map=firmware.map,--cref -fno-zero-initialized-in-bss -ffreestanding -nostdlib -o firmware.elf -I$(INCLUDE_DIR)  $(START_FILE) $(C_FILES)
 
 firmware.bin: firmware.elf

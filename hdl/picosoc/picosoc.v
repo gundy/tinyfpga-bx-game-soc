@@ -59,8 +59,8 @@ module picosoc (
 	input  flash_io0_di,
 	input  flash_io1_di,
 	input  flash_io2_di,
-	input  flash_io3_di
-);
+	input  flash_io3_di);
+	
 	parameter [0:0] BARREL_SHIFTER = 1;
 	parameter [0:0] ENABLE_MULDIV = 1;
 	parameter [0:0] ENABLE_COMPRESSED = 1;
@@ -91,6 +91,7 @@ module picosoc (
 	wire mem_valid;
 	wire mem_instr;
 	wire mem_ready;
+
 	wire [31:0] mem_addr;
 	wire [31:0] mem_wdata;
 	wire [3:0] mem_wstrb;
@@ -223,14 +224,14 @@ module picosoc_regs (
 	output reg [31:0] rdata1,
 	output reg [31:0] rdata2
 );
-	reg [31:0] regs [0:35];
+	reg [31:0] regs [0:63];
 
 	always @(posedge clk) begin
 		if (wen) begin
 			regs[waddr[5:0]] <= wdata;
 		end
 		rdata1 <= regs[raddr1[5:0]];
-		rdata2 <= 32'h0000_0000;
+		rdata2 <= regs[raddr2[5:0]];
 	end
 
 	// assign rdata1 = regs[raddr1[5:0]];

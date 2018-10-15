@@ -55,9 +55,14 @@ module top (
 `ifdef vga
     output VGA_VSYNC,
     output VGA_HSYNC,
-    output VGA_R,
-    output VGA_G,
-    output VGA_B,
+    output VGA_R2,
+    output VGA_R1,
+    output VGA_R0,
+    output VGA_G2,
+    output VGA_G1,
+    output VGA_G0,
+    output VGA_B1,
+    output VGA_B0,
 `endif
 
 `ifdef gpio
@@ -115,9 +120,9 @@ module top (
 
     // enable signals for each of the peripherals
     wire gpio_en   = (iomem_addr[31:24] == 8'h03); /* GPIO mapped to 0x03xx_xxxx */
-    wire audio_en  = (iomem_addr[31:24] == 8'h04); /* Audio device mapped to 0x04xx_xxxx */
     wire video_en  = (iomem_addr[31:24] == 8'h05); /* Video device mapped to 0x05xx_xxxx */
     wire i2c_en    = (iomem_addr[31:24] == 8'h07); /* I2C device mapped to 0x06xx_xxxx */
+    wire audio_en  = (iomem_addr[31:24] == 8'h04); /* Audio device mapped to 0x04xx_xxxx */
 
 
 `ifdef pdm_audio
@@ -152,6 +157,9 @@ module top (
 `endif
 
 `ifdef vga
+      wire [7:0] VGA_RGB;
+      assign {VGA_R2, VGA_R1, VGA_R0, VGA_G2, VGA_G1, VGA_G0, VGA_B1, VGA_B0 } = { VGA_RGB };
+
       video_vga vga_video_peripheral(
       		.clk(CLK),
       		.resetn(resetn),
@@ -161,9 +169,7 @@ module top (
       		.iomem_wdata(iomem_wdata),
       		.vga_hsync(VGA_HSYNC),
       		.vga_vsync(VGA_VSYNC),
-      		.vga_r(VGA_R),
-      		.vga_g(VGA_G),
-      		.vga_b(VGA_B)
+      		.vga_rgb(VGA_RGB)
       	);
 `endif
 
@@ -197,6 +203,7 @@ wire [31:0] i2c_iomem_rdata;
 wire i2c_iomem_ready;
 
 `ifdef i2c
+
   i2c i2c_peripheral(
     .clk(CLK),
     .resetn(resetn),
@@ -215,7 +222,10 @@ wire i2c_iomem_ready;
 `endif
 
 
-assign iomem_ready = i2c_en ? i2c_iomem_ready : gpio_en ? gpio_iomem_ready : 1'b1;
+assign iomem_ready = (i2c_en && i2c_iomem_ready)
+                  || (gpio_en && gpio_iomem_ready)
+                  || audio_en
+                  || video_en;
 assign iomem_rdata =  i2c_iomem_ready ? i2c_iomem_rdata
                     : gpio_iomem_ready ? gpio_iomem_rdata
                     : 32'h0;
@@ -227,7 +237,7 @@ picosoc #(
 	.ENABLE_COUNTERS(0),
 	.ENABLE_IRQ_QREGS(1),
 	.ENABLE_TWO_STAGE_SHIFT(0),
-  .ENABLE_REGS_DUALPORT(0),
+  .ENABLE_REGS_DUALPORT(1),
 	.PROGADDR_RESET(32'h0005_0000), // beginning of user space in SPI flash
 	.PROGADDR_IRQ(32'h0005_0010),
 	.MEM_WORDS(1024),                // use 4KBytes of block RAM by default (8 RAMS)
