@@ -5,6 +5,7 @@
 #include <video/video.h>
 #include <songplayer/songplayer.h>
 #include <uart/uart.h>
+#include <sine_table/sine_table.h>
 #include <nunchuk/nunchuk.h>
 
 #include "includes/palette.h"
@@ -70,7 +71,26 @@ void setup_screen() {
   // copy texture data into texture memory
   vid_write_texture_memory(texture_data);
 
+  for (int x=0; x<40; x++) {
+    for (int y=0; y<2; y++) {
+      vid_write_window_memory(x,y,32);
+    }
+  }
+
+  for (int i = 0; i<23; i++) {
+    vid_write_window_memory(5+i, 0, (uint32_t)(("A non scrolling window!")[i]));
+    vid_write_window_memory(5+i, 1, (uint32_t)(("Score: 02300   Lives: 0")[i]));
+  }
+
+  vid_enable_window(0,1);
+
   // Set up the tile memory
+  for (int y = 0; y < 32; y++) {
+    for (int x = 0; x < 64; x++) {
+      vid_set_tile(x,y,128);
+    }
+  }
+
   for (int y = 0; y < 30; y++) {
     // y * 40 = (y*32)+(y*8)
     int tileofs = (y<<5)+(y<<3);
@@ -79,27 +99,27 @@ void setup_screen() {
     }
   }
 
-  struct sprite_config_reg_t config;
-  config.flipxy=0;
-  config.enable=1;
-  config.palette=7;
-  config.image=2;
-  config.xpos=100;
-  config.ypos=100;
-  vid_set_all_sprite_config(0, &config);
-  config.xpos=116;
-  config.flipxy=2;
-  vid_set_all_sprite_config(1, &config);
-  config.xpos=150;
-  config.ypos=150;
-  config.flipxy=0;
-  config.palette=12;
-  config.image=1;
-  vid_set_all_sprite_config(2,&config);
-  config.image=0;
-  config.palette=2;
-  config.xpos=110;
-  vid_set_all_sprite_config(3,&config);
+  // struct sprite_config_reg_t config;
+  // config.flipxy=0;
+  // config.enable=1;
+  // config.palette=7;
+  // config.image=2;
+  // config.xpos=100;
+  // config.ypos=100;
+  // vid_set_all_sprite_config(0, &config);
+  // config.xpos=116;
+  // config.flipxy=2;
+  // vid_set_all_sprite_config(1, &config);
+  // config.xpos=150;
+  // config.ypos=150;
+  // config.flipxy=0;
+  // config.palette=12;
+  // config.image=1;
+  // vid_set_all_sprite_config(2,&config);
+  // config.image=0;
+  // config.palette=2;
+  // config.xpos=110;
+  // vid_set_all_sprite_config(3,&config);
 
 
 }
@@ -124,15 +144,61 @@ void main() {
 
 
   uint32_t time_waster = 0;
+  struct sprite_config_reg_t config;
+  config.flipxy=0;
+  config.enable=1;
+  config.palette=7;
+  config.image=2;
+  config.xpos=100;
+  config.ypos=100;
 
   // Main loop
   while (1) {
     time_waster = time_waster + 1;
-    if ((time_waster & 0xffff) == 0xffff) {
+    if ((time_waster & 0x3ff) == 0x3ff) {
       // Update tick counter
       tick_counter++;
       reg_leds=tick_counter&0x01;
-      vid_set_sub_palette(1, sub_palettes[1]);
+      vid_set_x_ofs((tick_counter<<1)&0x1ff);
+      //vid_set_sub_palette(1, sub_palettes[1]);
+
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+32)&0xff]);
+      config.ypos = 40;
+      config.image=0;
+      config.palette=1;
+      config.flipxy=0;
+      vid_set_all_sprite_config(0, &config);
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+64)&0xff]);
+      config.ypos = 70;
+      config.image=1;
+      config.palette=2;
+      config.flipxy=0;
+      vid_set_all_sprite_config(1, &config);
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+96)&0xff]);
+      config.ypos = 90;
+      config.image=2;
+      config.palette=3;
+      config.flipxy=0;
+      vid_set_all_sprite_config(2, &config);
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+128)&0xff]);
+      config.ypos = 128;
+      config.image=0;
+      config.palette=4;
+      config.flipxy=3;
+      vid_set_all_sprite_config(3, &config);
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+160)&0xff]);
+      config.ypos = 160;
+      config.image=1;
+      config.palette=5;
+      config.flipxy=3;
+      vid_set_all_sprite_config(4, &config);
+      config.xpos = (uint32_t)(160+sine_table[(tick_counter+192)&0xff]);
+      config.ypos = 180;
+      config.image=2;
+      config.palette=6;
+      config.flipxy=3;
+      vid_set_all_sprite_config(5, &config);
+
     }
   }
 }

@@ -22,10 +22,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 module VGASyncGen (
   input wire       clk,           // Input clock (12Mhz or 16Mhz)
+  input wire resetn,
   output wire      hsync,         // Horizontal sync out
   output wire      vsync,         // Vertical sync out
   output reg [9:0] x_px,          // X position for actual pixel.
   output reg [9:0] y_px,          // Y position for actual pixel.
+  output wire      activeline,
   output wire      activevideo    // Video is actived.
 );
 
@@ -81,14 +83,7 @@ module VGASyncGen (
     reg [9:0] hc;
     reg [9:0] vc;
 
-    // Initial values.
-    initial
-    begin
-      x_px <= 0;
-      y_px <= 0;
-      hc <= 0;
-      vc <= 0;
-    end
+    wire activecolumn;
 
     // Counting pixels.
     always @(posedge clk)
@@ -108,29 +103,25 @@ module VGASyncGen (
             else
                vc <= 0;
         end
+        if (!resetn) begin
+          hc <= 0;
+          vc <= 0;
+        end
      end
 
     // Generate horizontal and vertical sync pulses (active low) and active video.
     assign hsync = (hc >= hfp && hc < hfp + hpulse) ? 1'b0 : 1'b1;
     assign vsync = (vc >= vfp && vc < vfp + vpulse) ? 1'b0 : 1'b1;
-    assign activevideo = (hc >= blackH) && (vc >= blackV) ? 1'b1 : 1'b0; //&& (hc < blackH + activeHvideo) && (vc < blackV + activeVvideo) ? 1'b1 : 1'b0;
+    assign activeline = (vc >= blackV);
+    assign activecolumn = (hc >= blackH);
+    assign activevideo = activeline && activecolumn; //&& (hc < blackH + activeHvideo) && (vc < blackV + activeVvideo) ? 1'b1 : 1'b0;
 //    assign endframe = (hc == hpixels-1 && vc == vlines-1) ? 1'b1 : 1'b0 ;
 
     // Generate new pixel position.
     always @(*)
     begin
-        // First check if we are within vertical active video range.
-        if (activevideo)
-        begin
-            x_px <= hc - blackH;
-            y_px <= vc - blackV;
-        end
-        else
-        // We are outside active video range so initial position it's ok.
-        begin
-            x_px <= 0;
-            y_px <= 0;
-        end
-     end
+        x_px <= hc - blackH;
+        y_px <= vc - blackV;
+   end
 
 endmodule

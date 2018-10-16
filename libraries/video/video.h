@@ -13,9 +13,10 @@
 #define reg_video_spritemem    ((volatile uint32_t*)0x05300000)
 #define reg_video_palette      ((volatile uint32_t*)0x05400000)
 #define reg_video_sub_palette  ((volatile uint32_t*)0x05500000)
-#define reg_video_xofs        (*(volatile uint32_t*)0x05000000)
-#define reg_video_yofs        (*(volatile uint32_t*)0x05000004)
-#define reg_video_spriteconfig ((volatile uint32_t*)0x05000008)
+#define reg_video_window_ram   ((volatile uint32_t*)0x05600000)
+#define reg_video_spriteconfig ((volatile uint32_t*)0x05000000)
+#define reg_video_xyofs        (*(volatile uint32_t*)0x05000020)
+#define reg_video_windowctrl   (*(volatile uint32_t*)0x05000024)
 
 void vid_init();
 
@@ -46,5 +47,8 @@ void vid_write_sprite_memory(const uint32_t *data);
 void vid_write_texture_memory(const uint32_t *data);
 void vid_set_sprite_flipxy(uint32_t sprite_num, uint32_t flipxy);
 void vid_random_init_sprite_memory();
+void vid_enable_window(uint32_t line_start, uint32_t line_end);
+void vid_disable_window();
+void vid_write_window_memory(uint32_t x, uint32_t y, uint32_t value);
 
 #endif
