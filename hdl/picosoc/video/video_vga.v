@@ -12,18 +12,29 @@ module video_vga
 	input [3:0]  iomem_wstrb,
 	input [31:0] iomem_addr,
 	input [31:0] iomem_wdata,
+`ifdef ili9341
+  output reg       nreset,
+  output reg       cmd_data, // 1 => Data, 0 => Command
+  //output           ncs, // Chip select (low enable)
+  output reg       write_edge, // Write signal on rising edge
+  output           read_edge, // Read signal on rising edge
+  output reg [7:0] dout);
+`else
   output vga_hsync,
   output vga_vsync,
   output [7:0] vga_rgb);
+`endif
 
+`ifndef ili9341
   reg[9:0] xpos;
   reg[9:0] ypos;
 
   wire[8:0] half_xpos = xpos[8:0];  // no longer being halved since we're using a slower (16MHz) pixel clock
   wire[8:0] half_ypos = ypos[9:1];
+`endif
 
   wire[8:0] next_xpos = half_xpos+1;
-  wire video_active, video_active_line;
+  wire video_active;
 
 
   localparam NUM_SPRITES = 8;
@@ -72,9 +83,9 @@ module video_vga
   // - eg. y*64+x
   wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
 
-  // window_y_pos = current y index into the window (either 0 or 1);
-  wire window_y_pos = half_ypos[3] - window_line_start[0];
-  wire [7:0] window_read_address = { 1'b0, window_y_pos, half_xpos[8:3] };
+  // window_y_pos = current y index into the window (0-3);
+  wire [1:0] window_y_pos = half_ypos[4:3] - window_line_start[1:0];
+  wire [7:0] window_read_address = { window_y_pos, half_xpos[8:3] };
 
   // 64x32 tile (& tile colour) memory
   // memory is arranged in a 64x32 grid of 12-bit values
@@ -210,6 +221,7 @@ module video_vga
             end
           2'b11:
             begin
+              // pre-shift sprite pixels out of shift register if sprite position is < 16
               if (current_hsync_sprite_register[17:9]<16) begin
                 sprite_line_buffer[current_hsync_sprite] <= (sprite_line_buffer[current_hsync_sprite] << { skipped_x_pixels, 1'b0 });
               end
@@ -228,6 +240,8 @@ module video_vga
   reg[1:0] sprite_pixel[0:7];
   reg[3:0] sprite_sub_palette_idx[0:7];
 
+  wire[8:0] half_xpos_plus_16 = half_xpos+16;
+
   generate
     genvar i;
 
@@ -236,7 +250,7 @@ module video_vga
         sprite_sub_palette_idx[i][3:0] <= config_register_bank[i][27:24];
 
         // if screen xpos has exceeded sprite xpos, start shifting the pixels out
-        if (video_active && config_register_bank[i][28] && ((half_xpos+16) > (config_register_bank[i][17:9]))) begin
+        if (video_active && config_register_bank[i][28] && (half_xpos_plus_16 > (config_register_bank[i][17:9]))) begin
 
           // if the flipx bit is clear, shift pixels out MSB first;
           // otherwise shift them out LSB first
@@ -278,15 +292,80 @@ module video_vga
 		end
 	end
 
+`ifdef ili9341
+   reg        pix_clk = 0;
+   reg        reset_cursor = 0;
+   wire       busy;
+   wire [7:0] vga_rgb;
+   wire vga_hsync, vga_vsync;
+   reg [8:0] lcd_x;
+   reg [8:0] lcd_y;
+   wire [8:0] half_xpos;
+   wire [8:0] half_ypos;
+
+   localparam hsync_pixels = 40;
+   localparam maxx = 319;
+   localparam maxy = 239;
+   localparam vsync_lines = 2;
+
+   wire [1:0] blue = vga_rgb[1:0];
+   wire [2:0] red = vga_rgb[7:5];
+   wire [2:0] green = vga_rgb[4:2];
+
+   ili9341 lcd (
+      .resetn(resetn),
+      .clk_16MHz (clk),
+      .nreset (nreset),
+      .cmd_data (cmd_data),
+      //.ncs (ncs),
+      .write_edge (write_edge),
+      .read_edge (read_edge),
+      .dout (dout),
+      .reset_cursor (reset_cursor),
+      // ordering is G2G1G0B4B3B2B1B0  ... R4R3R2R1R0G5G4G3
+      .pix_data ({ red, red[2:1], green, green, blue, blue, blue[1] }),
+      // .pix_data ({ /* blue */ vga_rgb[1:0], vga_rgb[1:0], vga_rgb[1],  // B1B0B1B0B1
+      //               /* green */ vga_rgb[4:2],vga_rgb[4:2],   // G2G1G0G2G1G0
+      //               /* red */ vga_rgb[7:5], vga_rgb[7:6]}),  // R2R1R0R2R1
+      .pix_clk (pix_clk),
+      .busy (busy)
+    );
+
+   assign vga_hsync = !(lcd_x < hsync_pixels);
+   assign vga_vsync = !(lcd_y < vsync_lines);
+   assign half_xpos = lcd_x - hsync_pixels;
+   assign half_ypos = lcd_y - vsync_lines;
+   assign video_active = (lcd_x >= hsync_pixels) && (lcd_y >= vsync_lines);
+
+
+   always @(posedge clk) begin
+      reset_cursor <= 0;
+      pix_clk <= 0;
+
+      if (!busy && !pix_clk) begin
+        lcd_x <= lcd_x + 1;
+
+        if (lcd_x >= (maxx+hsync_pixels)) begin
+          lcd_x <= 0;
+          lcd_y <= lcd_y + 1;
+          if (lcd_y >= (maxy+vsync_lines)) begin
+            lcd_y <= 0;
+            reset_cursor <= 1;
+          end
+        end
+        if (video_active) pix_clk <= 1;
+      end
+
+   end
+`else
   VGASyncGen vga_generator(
     .clk(clk),
-    .resetn(resetn),
     .hsync(vga_hsync),
     .vsync(vga_vsync),
     .x_px(xpos),
     .y_px(ypos),
-    .activevideo(video_active),
-    .activeline(video_active_line)
+    .activevideo(video_active)
   );
+`endif
 
 endmodule

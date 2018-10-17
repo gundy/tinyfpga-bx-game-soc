@@ -1,14 +1,14 @@
 upload: hardware.bin firmware.bin
 	tinyprog -p hardware.bin -u firmware.bin
 
-hardware.blif: $(VERILOG_FILES)
-	yosys -f "verilog $(DEFINES)" -ql hardware.log -p 'synth_ice40 -top top -blif hardware.blif' $^
+hardware.json: $(VERILOG_FILES)
+	yosys -f "verilog $(DEFINES)" -ql hardware.log -p 'synth_ice40 -top top -json hardware.json' $^
 
-hardware.asc: $(PCF_FILE) hardware.blif
-	arachne-pnr -r -d 8k -P cm81 -m 400 -o hardware.asc -p $(PCF_FILE) hardware.blif
+hardware.asc: $(PCF_FILE) hardware.json
+	nextpnr-ice40 --lp8k --package cm81 --json hardware.json --pcf $(PCF_FILE) --asc hardware.asc
 
 hardware.bin: hardware.asc
-	icetime -d hx8k -c 12 -mtr hardware.rpt hardware.asc
+	icetime -d lp8k -c 12 -mtr hardware.rpt hardware.asc
 	icepack hardware.asc hardware.bin
 
 firmware.elf: $(C_FILES) $(START_FILE)

@@ -14,17 +14,17 @@ VERILOG_FILES = \
 	$(HDL_DIR)/picosoc/video/texture_memory.v \
 	$(HDL_DIR)/picosoc/video/window_memory.v \
 	$(HDL_DIR)/picosoc/video/tile_colour_memory.v \
-	$(HDL_DIR)/picosoc/video/sprite.v \
 	$(HDL_DIR)/picosoc/video/VGASyncGen.v \
 	$(HDL_DIR)/picosoc/video/video_vga.v \
+	$(HDL_DIR)/picosoc/ili9341/ili9341.v \
 	$(HDL_DIR)/picosoc/gpio/gpio.v
 
-PCF_FILE = $(HDL_DIR)/pins.pcf
+PCF_FILE = $(HDL_DIR)/portable.pcf
 LDS_FILE = $(FIRMWARE_DIR)/sections.lds
 START_FILE = $(FIRMWARE_DIR)/start.S
 C_FILES = main.c \
 	$(INCLUDE_DIR)/uart/uart.c \
   	$(INCLUDE_DIR)/video/video.c
-DEFINES =  -Dgpio -Dvga
+DEFINES =  -Dgpio -Dvga -Dili9341
 
 include $(HDL_DIR)/tiny_soc.mk

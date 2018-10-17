@@ -21,8 +21,8 @@ module top (
     input CLK,
 
     // hardware UART
-    output SER_TX,
-    input SER_RX,
+    //output SER_TX,
+    //input SER_RX,
 
     // onboard SPI flash interface
     output SPI_SS,
@@ -52,7 +52,21 @@ module top (
     inout OLED_SPI_CS,
 `endif
 
-`ifdef vga
+`ifdef ili9341
+        output lcd_D0,
+	output lcd_D1,
+	output lcd_D2,
+	output lcd_D3,
+	output lcd_D4,
+	output lcd_D5,
+	output lcd_D6,
+	output lcd_D7,
+	output lcd_nreset,
+  output lcd_cmd_data,
+//  output lcd_backlight,
+  output lcd_read_edge,
+  output lcd_write_edge,
+`elsif vga
     output VGA_VSYNC,
     output VGA_HSYNC,
     output VGA_R2,
@@ -156,10 +170,8 @@ module top (
   );
 `endif
 
-`ifdef vga
-      wire [7:0] VGA_RGB;
-      assign {VGA_R2, VGA_R1, VGA_R0, VGA_G2, VGA_G1, VGA_G0, VGA_B1, VGA_B0 } = { VGA_RGB };
 
+`ifdef ili9341
       video_vga vga_video_peripheral(
       		.clk(CLK),
       		.resetn(resetn),
@@ -167,11 +179,31 @@ module top (
       		.iomem_wstrb(iomem_wstrb),
       		.iomem_addr(iomem_addr),
       		.iomem_wdata(iomem_wdata),
-      		.vga_hsync(VGA_HSYNC),
-      		.vga_vsync(VGA_VSYNC),
-      		.vga_rgb(VGA_RGB)
-      	);
+          .nreset(lcd_nreset),
+          .cmd_data(lcd_cmd_data),
+		.write_edge(lcd_write_edge),
+		.read_edge(lcd_read_edge),
+//		.backlight(lcd_backlight),
+		.dout({lcd_D7, lcd_D6, lcd_D5, lcd_D4,
+		       lcd_D3, lcd_D2, lcd_D1, lcd_D0})
+      );
+`elsif vga
+    wire [7:0] VGA_RGB;
+    assign {VGA_R2, VGA_R1, VGA_R0, VGA_G2, VGA_G1, VGA_G0, VGA_B1, VGA_B0 } = { VGA_RGB };
+
+    video_vga vga_video_peripheral(
+        .clk(CLK),
+        .resetn(resetn),
+        .iomem_valid(iomem_valid && video_en),
+        .iomem_wstrb(iomem_wstrb),
+        .iomem_addr(iomem_addr),
+        .iomem_wdata(iomem_wdata),
+        .vga_hsync(VGA_HSYNC),
+        .vga_vsync(VGA_VSYNC),
+        .vga_rgb(VGA_RGB)
+      );
 `endif
+
 
   wire [31:0] gpio_iomem_rdata;
   wire gpio_iomem_ready;
@@ -247,8 +279,8 @@ picosoc #(
 	.clk          (CLK         ),
 	.resetn       (resetn      ),
 
-	.ser_tx       (SER_TX      ),
-	.ser_rx       (SER_RX      ),
+	// .ser_tx       (SER_TX      ),
+	// .ser_rx       (SER_RX      ),
 
 	.flash_csb    (SPI_SS   ),
 	.flash_clk    (SPI_SCK  ),
