@@ -82,7 +82,7 @@ void setup_screen() {
     vid_write_window_memory(5+i, 1, (uint32_t)(("Score: 02300   Lives: 0")[i]));
   }
 
-  vid_enable_window(0,1);
+  vid_enable_window(28,29);
 
   // Set up the tile memory
   for (int y = 0; y < 32; y++) {
@@ -160,6 +160,7 @@ void main() {
       tick_counter++;
       reg_leds=tick_counter&0x01;
       vid_set_x_ofs((tick_counter<<1)&0x1ff);
+      vid_set_y_ofs((tick_counter>>1)&0xff);
       //vid_set_sub_palette(1, sub_palettes[1]);
 
       config.xpos = (uint32_t)(160+sine_table[(tick_counter+32)&0xff]);

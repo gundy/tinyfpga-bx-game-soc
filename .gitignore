@@ -5,6 +5,7 @@ hardware.blif
 hardware.rpt
 hardware.log
 firmware.map
+hardware.json
 *.out
 *.vcd
 *.idea

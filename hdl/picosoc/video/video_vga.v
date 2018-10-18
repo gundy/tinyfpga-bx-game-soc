@@ -81,8 +81,11 @@ module video_vga
   // the below is for an 64x32 tile map
   //  [ y y y y y y x x x x x x ]
   // - eg. y*64+x
+`ifdef ili9341
+  wire [11:0] tile_read_address = { effective_y[8:3], effective_x[8:3] };
+`else
   wire [11:0] tile_read_address = { effective_y[8:3], effective_next_x[8:3] };
-
+`endif
   // window_y_pos = current y index into the window (0-3);
   wire [1:0] window_y_pos = half_ypos[4:3] - window_line_start[1:0];
   wire [7:0] window_read_address = { window_y_pos, half_xpos[8:3] };
@@ -241,23 +244,31 @@ module video_vga
   reg[3:0] sprite_sub_palette_idx[0:7];
 
   wire[8:0] half_xpos_plus_16 = half_xpos+16;
+  reg [8:0] prev_xpos;
+
+  wire newx = (half_xpos != prev_xpos);
+  always @(posedge clk) begin
+    prev_xpos <= half_xpos;
+  end
 
   generate
     genvar i;
 
     for (i = 0; i < NUM_SPRITES; i = i + 1) begin : spritelines
       always @(posedge clk) begin
-        sprite_sub_palette_idx[i][3:0] <= config_register_bank[i][27:24];
+        if (newx) begin
+          sprite_sub_palette_idx[i][3:0] <= config_register_bank[i][27:24];
 
-        // if screen xpos has exceeded sprite xpos, start shifting the pixels out
-        if (video_active && config_register_bank[i][28] && (half_xpos_plus_16 > (config_register_bank[i][17:9]))) begin
+          // if screen xpos has exceeded sprite xpos, start shifting the pixels out
+          if (video_active && config_register_bank[i][28] && (half_xpos_plus_16 > (config_register_bank[i][17:9]))) begin
 
-          // if the flipx bit is clear, shift pixels out MSB first;
-          // otherwise shift them out LSB first
-          sprite_pixel[i][1:0] <= sprite_line_buffer[i][31:30];
-          sprite_line_buffer[i][31:0] <= { sprite_line_buffer[i][29:0], 2'b0 };
-        end else begin
-          sprite_pixel[i][1:0] <= 2'b0;
+            // if the flipx bit is clear, shift pixels out MSB first;
+            // otherwise shift them out LSB first
+            sprite_pixel[i][1:0] <= sprite_line_buffer[i][31:30];
+            sprite_line_buffer[i][31:0] <= { sprite_line_buffer[i][29:0], 2'b0 };
+          end else begin
+            sprite_pixel[i][1:0] <= 2'b0;
+          end
         end
       end
     end
@@ -333,7 +344,7 @@ module video_vga
 
    assign vga_hsync = !(lcd_x < hsync_pixels);
    assign vga_vsync = !(lcd_y < vsync_lines);
-   assign half_xpos = lcd_x - hsync_pixels;
+   assign half_xpos = (lcd_x>=hsync_pixels)? (lcd_x - hsync_pixels):0;
    assign half_ypos = lcd_y - vsync_lines;
    assign video_active = (lcd_x >= hsync_pixels) && (lcd_y >= vsync_lines);
 
