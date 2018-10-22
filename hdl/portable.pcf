@@ -49,7 +49,7 @@ set_io --warn-no-port AUDIO_RIGHT A1    # pin 2
 #set_io --warn-no-port VGA_B E1      # pin 9
 #set_io --warn-no-port VGA_G G2      # pin 10
 #set_io --warn-no-port lcd_backlight  H1 # pin 11
-set_io --warn-no-port lcd_read_edge  J1 # pin 12
+# set_io --warn-no-port lcd_read_edge  J1 # pin 12
 set_io --warn-no-port lcd_write_edge H2 # pin 13
 
 

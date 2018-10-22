@@ -32,6 +32,7 @@ module top (
     inout  SPI_IO2,
     inout  SPI_IO3,
 
+
 `ifdef pdm_audio
     // Audio out pin
 		output AUDIO_RIGHT,
@@ -63,8 +64,6 @@ module top (
 	output lcd_D7,
 	output lcd_nreset,
   output lcd_cmd_data,
-//  output lcd_backlight,
-  output lcd_read_edge,
   output lcd_write_edge,
 `elsif vga
     output VGA_VSYNC,
@@ -143,7 +142,7 @@ module top (
     wire audio_data;
   	assign AUDIO_LEFT = audio_data;
   	assign AUDIO_RIGHT = audio_data;
-  	audio audio_peripheral(
+  	audio_small audio_peripheral(
   		.clk(CLK),
   		.resetn(resetn),
   		.audio_out(audio_data),
@@ -172,7 +171,8 @@ module top (
 
 
 `ifdef ili9341
-      video_vga vga_video_peripheral(
+      wire vga_irq;
+      video_lcd vga_video_peripheral(
       		.clk(CLK),
       		.resetn(resetn),
       		.iomem_valid(iomem_valid && video_en),
@@ -181,9 +181,8 @@ module top (
       		.iomem_wdata(iomem_wdata),
           .nreset(lcd_nreset),
           .cmd_data(lcd_cmd_data),
+          .irq(vga_irq),
 		.write_edge(lcd_write_edge),
-		.read_edge(lcd_read_edge),
-//		.backlight(lcd_backlight),
 		.dout({lcd_D7, lcd_D6, lcd_D5, lcd_D4,
 		       lcd_D3, lcd_D2, lcd_D1, lcd_D0})
       );
@@ -300,7 +299,7 @@ picosoc #(
 	.flash_io2_di (flash_io2_di),
 	.flash_io3_di (flash_io3_di),
 
-	.irq_5        (1'b0),
+	.irq_5        (vga_irq),
 	.irq_6        (1'b0        ),
 	.irq_7        (1'b0        ),
 

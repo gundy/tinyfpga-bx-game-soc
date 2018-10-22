@@ -12,9 +12,9 @@ void vid_init()
   vid_xyofs = 0;
 }
 
-void vid_set_palette(uint32_t idx, uint32_t rrrgggbb)
+void vid_set_palette(uint32_t idx, uint32_t rrggbb)
 {
-    reg_video_palette[idx]=(uint32_t)rrrgggbb;
+    reg_video_palette[idx]=(uint32_t)rrggbb;
 }
 
 void vid_set_sub_palette(uint32_t idx, uint32_t pal4)
@@ -30,7 +30,7 @@ void vid_enable_sprite(uint32_t sprite_num, uint32_t enable)
 
 void vid_set_image_for_sprite(uint32_t sprite_num, uint32_t image_num)
 {
-    sprite_state[sprite_num].image = image_num & 0x3f;
+    sprite_state[sprite_num].image = image_num & 0x1f;
     vid_set_all_sprite_config(sprite_num, &sprite_state[sprite_num]);
 }
 
@@ -44,7 +44,7 @@ void vid_set_all_sprite_config(uint32_t sprite_num, struct sprite_config_reg_t *
   uint32_t out =  (sprite_config->flipxy << 29)
                   | (sprite_config->enable << 28)
                   | (sprite_config->palette << 24)
-                  | (sprite_config->image << 18)
+                  | (sprite_config->image << 19)
                   | (sprite_config->xpos << 9)
                   | (sprite_config->ypos);
   reg_video_spriteconfig[sprite_num]=out;

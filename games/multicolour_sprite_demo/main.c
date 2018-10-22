@@ -22,6 +22,9 @@
 const uint32_t counter_frequency = 16000000/50;  /* 50 times per second */
 uint32_t tick_counter;
 
+extern const struct song_t song_petergunn;
+
+
 // Set the IRQ mask
 uint32_t set_irq_mask(uint32_t mask); asm (
     ".global set_irq_mask\n"
@@ -45,6 +48,11 @@ void irq_handler(uint32_t irqs, uint32_t* regs)
   if ((irqs & 1) != 0) {
     // retrigger timer
     set_timer_counter(counter_frequency);
+    songplayer_tick();
+    // Update tick counter
+    tick_counter++;
+    reg_leds=tick_counter&0x01;
+
 //    print(".\n");
   }
 }
@@ -129,17 +137,17 @@ const uint32_t sub_palettes[4]={ 0xfc60, 0xf710, 0xfb50, 0xfd40 };
 // Main entry point
 void main() {
   //reg_leds = 0x01;
-  reg_uart_clkdiv = 138;  // 16,000,000 / 115,200
+  //reg_uart_clkdiv = 138;  // 16,000,000 / 115,200
 
-  print("Initialising..\n");
+//  print("Initialising..\n");
   reg_spictrl = (reg_spictrl & ~0x007F0000) | 0x00400000;
 
   setup_screen();
-
-
+  songplayer_init(&song_petergunn);
+  audio_set_global_volume(0xff);
   // set timer interrupt to happen 1/50th sec from now
   // (the music routine runs from the timer interrupt)
-  //set_timer_counter(counter_frequency);
+  set_timer_counter(counter_frequency);
 
 
 
@@ -156,9 +164,7 @@ void main() {
   while (1) {
     time_waster = time_waster + 1;
     if ((time_waster & 0x3ff) == 0x3ff) {
-      // Update tick counter
-      tick_counter++;
-      reg_leds=tick_counter&0x01;
+
       vid_set_x_ofs((tick_counter<<1)&0x1ff);
       vid_set_y_ofs((tick_counter>>1)&0xff);
       //vid_set_sub_palette(1, sub_palettes[1]);

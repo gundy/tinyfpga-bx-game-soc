@@ -26,8 +26,6 @@ module ili9341 (
    localparam ms5   = $rtoi(0.005 / sec_per_tick);
    localparam ms500 = $rtoi(0.500 / sec_per_tick);
 
-   assign read_edge = 1;
-
    // Init Sequence Data (based upon
    // https://github.com/thekroko/ili9341_fpga/blob/master/tft_ili9341.sv)
    localparam INIT_SEQ_LEN = 20;

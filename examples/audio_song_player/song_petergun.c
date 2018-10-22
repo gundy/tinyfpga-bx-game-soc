@@ -1,6 +1,6 @@
 
-#include "songplayer.h"
-#include "audio.h"
+#include <songplayer.h>
+#include <audio.h>
 
 const struct envelope_t envelope0 = {
   .num_points = 16,
