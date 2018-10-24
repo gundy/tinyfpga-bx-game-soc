@@ -90,22 +90,34 @@ void setup_screen() {
     vid_write_window_memory(5+i, 1, (uint32_t)(("Score: 02300   Lives: 0")[i]));
   }
 
-  vid_enable_window(28,29);
+  vid_disable_window();
+//  vid_enable_window(28,29);
 
   // Set up the tile memory
   for (int y = 0; y < 32; y++) {
     for (int x = 0; x < 64; x++) {
-      vid_set_tile(x,y,128);
+      vid_set_tile(x,y,32);
     }
   }
 
-  for (int y = 0; y < 30; y++) {
-    // y * 40 = (y*32)+(y*8)
-    int tileofs = (y<<5)+(y<<3);
-    for (int x = 0; x < 40; x++) {
-      vid_set_tile(x,y,0x00000100|tile_map[tileofs++]); // bits 11-8 of tile are colour data (initiase all to 1).
+  // for 40x30 map
+  // for (int y = 0; y < 30; y++) {
+  //   // y * 40 = (y*32)+(y*8)
+  //   int tileofs = (y<<5)+(y<<3);
+  //   for (int x = 0; x < 40; x++) {
+  //     vid_set_tile(x,y,0x00000000|tile_map[tileofs++]); // bits 11-8 of tile are colour data (initiase all to 1).
+  //   }
+  // }
+
+  for (int y = 0; y < 32; y++) {
+    // y * 64 + x
+    int tileofs = (y<<6);
+    for (int x = 0; x < 64; x++) {
+      vid_set_tile(x,y,tile_map[tileofs++]); // bits 11-8 of tile are colour data
     }
   }
+
+
 
   // struct sprite_config_reg_t config;
   // config.flipxy=0;
@@ -132,7 +144,20 @@ void setup_screen() {
 
 }
 
-const uint32_t sub_palettes[4]={ 0xfc60, 0xf710, 0xfb50, 0xfd40 };
+static uint32_t ship_image[12] = { 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1 };
+static uint32_t ship_flip[12] =  { 0, 0, 0, 0, 1, 1, 1, 3, 3, 2, 2, 2 };
+
+void place_ship(int sprite_num, int x, int y, int exhaust, int orientation) {
+  struct sprite_config_reg_t config;
+  config.enable=1;
+  config.palette=6;
+  config.xpos=x;
+  config.ypos=y;
+
+  config.image  = ship_image[orientation] + (exhaust<<2);
+  config.flipxy = ship_flip[orientation];
+  vid_set_all_sprite_config(sprite_num, &config);
+}
 
 // Main entry point
 void main() {
@@ -150,62 +175,52 @@ void main() {
   set_timer_counter(counter_frequency);
 
 
-
   uint32_t time_waster = 0;
+
+  vid_set_x_ofs(0);
+  vid_set_y_ofs(0);
+
   struct sprite_config_reg_t config;
   config.flipxy=0;
   config.enable=1;
-  config.palette=7;
-  config.image=2;
-  config.xpos=100;
-  config.ypos=100;
+  config.palette=0;
+  config.image=24;
+  config.xpos=114;
+  config.ypos=20;
+  vid_set_all_sprite_config(0, &config);
+  config.image=25;
+  config.xpos = 130;
+  vid_set_all_sprite_config(1, &config);
+  config.image=26;
+  config.xpos = 146;
+  vid_set_all_sprite_config(2, &config);
+  config.image=27;
+  config.xpos = 162;
+  vid_set_all_sprite_config(3, &config);
+  config.image=28;
+  config.xpos = 178;
+  vid_set_all_sprite_config(4, &config);
 
+  // config.image=18;
+  // config.palette=6;
+  // config.xpos = 214;
+  // vid_set_all_sprite_config(5, &config);
+
+  int ship_orientation = 0;
+  int ship_count = 0;
   // Main loop
   while (1) {
     time_waster = time_waster + 1;
     if ((time_waster & 0x3ff) == 0x3ff) {
-
-      vid_set_x_ofs((tick_counter<<1)&0x1ff);
-      vid_set_y_ofs((tick_counter>>1)&0xff);
-      //vid_set_sub_palette(1, sub_palettes[1]);
-
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+32)&0xff]);
-      config.ypos = 40;
-      config.image=0;
-      config.palette=1;
-      config.flipxy=0;
-      vid_set_all_sprite_config(0, &config);
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+64)&0xff]);
-      config.ypos = 70;
-      config.image=1;
-      config.palette=2;
-      config.flipxy=0;
-      vid_set_all_sprite_config(1, &config);
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+96)&0xff]);
-      config.ypos = 90;
-      config.image=2;
-      config.palette=3;
-      config.flipxy=0;
-      vid_set_all_sprite_config(2, &config);
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+128)&0xff]);
-      config.ypos = 128;
-      config.image=0;
-      config.palette=4;
-      config.flipxy=3;
-      vid_set_all_sprite_config(3, &config);
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+160)&0xff]);
-      config.ypos = 160;
-      config.image=1;
-      config.palette=5;
-      config.flipxy=3;
-      vid_set_all_sprite_config(4, &config);
-      config.xpos = (uint32_t)(160+sine_table[(tick_counter+192)&0xff]);
-      config.ypos = 180;
-      config.image=2;
-      config.palette=6;
-      config.flipxy=3;
-      vid_set_all_sprite_config(5, &config);
-
+      ship_count++;
+      if (ship_count > 4) {
+        place_ship(5, 214, 20, 1, 11-ship_orientation);
+        place_ship(6, 80, 20, 0, ship_orientation);
+        if ((++ship_orientation) > 11) {
+          ship_orientation=0;
+        }
+        ship_count = 0;
+      }
     }
   }
 }
