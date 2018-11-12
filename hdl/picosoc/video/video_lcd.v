@@ -27,6 +27,10 @@
  * --------+--------+----------------------------------
  * 10      | 32bits |  Y interrupt (work in progress)
  *         |        |  [8:0] - generate a raster interrupt when Y hits this line
+ * --------+--------+----------------------------------
+ * 11-14   | 32bits |  bullet Y/2 [7:0]   (future)
+ *         |        |  bullet X/2 [15:8]
+ * -------------------------------------------------------------------------------
  */
 `default_nettype none
 
@@ -51,11 +55,14 @@ module video_lcd
   wire video_active;
 
   localparam NUM_SPRITES = 8;
+//  localparam NUM_BULLETS = 2;
+  localparam NUM_BULLETS = 0;
 
   // video registers
   // 0,1,2,3,4,5,6,7 => sprite control
   // 8,9 => x,y offset into tile map
-	reg [31:0] config_register_bank [0:3+NUM_SPRITES-1];  /* x/y pos + sprite config */
+
+	reg [31:0] config_register_bank [0:3+NUM_SPRITES+NUM_BULLETS-1];  /* 8xsprite config + x/y pos + window control + y interrupt + 4xbullet sprites */
   reg [5:0] palette [0:15];  /* 15-colour palette from 64 total colours (RRGGBB)*/
   reg [15:0] sub_palette[0:15];  // 4-colours per sub-palette entry; each colour index 0-15
 
@@ -159,6 +166,7 @@ module video_lcd
   wire[5:0] sprite_colour = palette[sprite_colour_idx];
 
   assign vga_rgb = (!video_active) ? 6'b00_00_00
+//                      : bullet_active ? 6'b11_11_11
                       : sprite_pixel_visible ? sprite_colour
                       : texture_colour;
 
@@ -332,6 +340,11 @@ module video_lcd
    reg signed [8:0] lcd_y;
    wire [8:0] half_xpos;
    wire [8:0] half_ypos;
+
+   wire [15:0] current_half_xy = { half_xpos[8:1], half_ypos[8:1] };
+   // wire bullet_active =  (current_half_xy == config_register_bank[11][15:0])
+   //                    || (current_half_xy == config_register_bank[12][15:0]);
+
 
    localparam hsync_pixels = 40;
    localparam maxx = 319;

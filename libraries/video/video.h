@@ -17,6 +17,9 @@
 #define reg_video_spriteconfig ((volatile uint32_t*)0x05000000)
 #define reg_video_xyofs        (*(volatile uint32_t*)0x05000020)
 #define reg_video_windowctrl   (*(volatile uint32_t*)0x05000024)
+#define reg_video_interrupt_y  (*(volatile uint32_t*)0x05000028)
+#define reg_video_bullets      ((volatile uint32_t*) 0x0500002c)
+
 
 void vid_init();
 
@@ -50,5 +53,6 @@ void vid_random_init_sprite_memory();
 void vid_enable_window(uint32_t line_start, uint32_t line_end);
 void vid_disable_window();
 void vid_write_window_memory(uint32_t x, uint32_t y, uint32_t value);
+void vid_set_raster_interrupt_line(uint32_t y);
 
 #endif

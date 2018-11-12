@@ -153,3 +153,8 @@ void vid_write_window_memory(uint32_t x, uint32_t y, uint32_t value)
 {
     reg_video_window_ram[(y<<6) + x] = value;
 }
+
+void vid_set_raster_interrupt_line(uint32_t y)
+{
+  reg_video_interrupt_y = y&0xff;
+}

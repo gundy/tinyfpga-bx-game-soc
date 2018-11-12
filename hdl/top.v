@@ -65,6 +65,8 @@ module top (
 	output lcd_nreset,
   output lcd_cmd_data,
   output lcd_write_edge,
+  output lcd_backlight,
+  output lcd_te,
 `elsif vga
     output VGA_VSYNC,
     output VGA_HSYNC,
@@ -91,6 +93,11 @@ module top (
 );
     // Disable USB
     assign USBPU = 1'b0;
+
+
+    assign lcd_backlight = 1;
+    assign lcd_te = 1;
+
 
     ///////////////////////////////////
     // Power-on Reset

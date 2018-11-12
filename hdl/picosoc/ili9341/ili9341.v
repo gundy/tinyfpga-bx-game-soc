@@ -92,7 +92,7 @@ module ili9341 (
 
       // see register descriptions above
       INIT_SEQ[10] <= { CD_CMD, ILI9341_MEMCONTROL };
-      INIT_SEQ[11] <= { CD_DATA,  ILI9341_MADCTL_BGR | ILI9341_MADCTL_MV };  // BGR ordering,
+      INIT_SEQ[11] <= { CD_DATA,  ILI9341_MADCTL_BGR | ILI9341_MADCTL_MV | ILI9341_MADCTL_MX | ILI9341_MADCTL_MY  };  // BGR ordering, flip vertical
 
       INIT_SEQ[12] <= { CD_CMD, ILI9341_PIXELFORMAT };
       INIT_SEQ[13] <= { CD_DATA, 8'h55 };  // 16 bits-per-pixel both MCU and display
@@ -205,7 +205,7 @@ module ili9341 (
                  tx_state <= TX_DATA_READY;
                  init_seq_counter <= 0;
                  state <= INIT;
-                 delay_ticks <= ms50;
+                 delay_ticks <= ms120;
               end
            end
 
