@@ -156,5 +156,10 @@ void vid_write_window_memory(uint32_t x, uint32_t y, uint32_t value)
 
 void vid_set_raster_interrupt_line(uint32_t y)
 {
-  reg_video_interrupt_y = y&0xff;
+  reg_video_interrupt_y = y;
+}
+
+void vid_set_bullet_location(uint32_t bullet_num, uint32_t xpos, uint32_t ypos)
+{
+  reg_video_bullets[bullet_num] = ((xpos<<7)&0xff00) | (ypos>>1);
 }

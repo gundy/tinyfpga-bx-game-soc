@@ -56,14 +56,14 @@ set_io lcd_backlight H2 # pin 13
 
 # Right side of board
 set_io SER_TX A6 # pin 24
-set_io -nowarn BUTTONS[0] B6
-set_io -nowarn BUTTONS[1] A7
-set_io -nowarn BUTTONS[2] B7
-set_io -nowarn BUTTONS[3] A8
-set_io -nowarn BUTTONS[4] B8
-set_io -nowarn BUTTONS[5] A9
-set_io -nowarn BUTTONS[6] C9
-set_io -nowarn BUTTONS[7] D8
+set_io -nowarn BUTTONS[0] B6  # pin 23 (UP)
+set_io -nowarn BUTTONS[1] A7  # pin 22 (RIGHT)
+set_io -nowarn BUTTONS[2] B7  # pin 21 (LEFT)
+set_io -nowarn BUTTONS[3] A8  # pin 20 (DOWN)
+set_io -nowarn BUTTONS[4] B8  # pin 19 (X)
+set_io -nowarn BUTTONS[5] A9  # pin 18 (Y)
+set_io -nowarn BUTTONS[6] C9  # pin 17 (A)
+set_io -nowarn BUTTONS[7] D8  # pin 16 (B)
 set_io AUDIO_LEFT D9 # pin 15
 set_io AUDIO_RIGHT H9 # pin 14
 

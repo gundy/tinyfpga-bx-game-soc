@@ -228,7 +228,7 @@ module top (
     .led(LED)
   );
 `else
-  assign gpio_iomem_ready = 1'b1;
+  assign gpio_iomem_ready = gpio_en;
   assign gpio_iomem_rdata = 32'h0;
 `endif
 
@@ -255,7 +255,7 @@ wire i2c_iomem_ready;
     .I2C_SDA(I2C_SDA)
   );
 `else
-  assign i2c_iomem_ready = 1'b1;     /* if i2c peripheral is "disconnected", fake always available zero bytes */
+  assign i2c_iomem_ready = i2c_en;     /* if i2c peripheral is "disconnected", fake always available zero bytes */
   assign i2c_iomem_rdata = 32'h0;
 `endif
 

@@ -26,8 +26,9 @@ C_FILES = main.c \
     song_petergunn.c \
   	$(INCLUDE_DIR)/video/video.c \
 		$(INCLUDE_DIR)/audio/audio.c \
+		$(INCLUDE_DIR)/gpio/gpio.c \
 		$(INCLUDE_DIR)/songplayer/songplayer.c
-#DEFINES =  -Dgpio -Dvga -Dili9341 -Dpdm_audio
-DEFINES =  -Dgpio -Dvga -Dili9341
+DEFINES =  -Dgpio -Dvga -Dili9341 -Dpdm_audio
+#DEFINES =  -Dgpio -Dvga -Dili9341
 
 include $(HDL_DIR)/tiny_soc.mk

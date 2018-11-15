@@ -23,6 +23,7 @@ module ili9341 (
    localparam sec_per_tick = (1.0 / tx_clk_freq);
    localparam ms120 = $rtoi(0.120 / sec_per_tick);
    localparam ms50  = $rtoi(0.050 / sec_per_tick);
+   localparam ms10   = $rtoi(0.005 / sec_per_tick);
    localparam ms5   = $rtoi(0.005 / sec_per_tick);
    localparam ms500 = $rtoi(0.500 / sec_per_tick);
 
@@ -187,7 +188,7 @@ module ili9341 (
               dout <= 0;
               write_edge <= 0;
               cmd_data <= 0;
-              delay_ticks <= ms5;
+              delay_ticks <= ms10;
 
               state <= NOT_RESET;
            end
@@ -205,7 +206,7 @@ module ili9341 (
                  tx_state <= TX_DATA_READY;
                  init_seq_counter <= 0;
                  state <= INIT;
-                 delay_ticks <= ms120;
+                 delay_ticks <= ms5;
               end
            end
 
